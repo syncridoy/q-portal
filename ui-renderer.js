@@ -4,12 +4,22 @@ import { state, BRIGADES, ALL_UNITS_LIST, ROLE_TABS, getRoleCategory, toTitleCas
 import { TRANSLATIONS, t, formatDisplayNumber, setLanguage, convertDigitsToBengali } from './translations.js';
 import { initMainDashboardCharts } from './charts.js';
 
-// Also import other needed elements
-// Note: We need to import functions like impersonateRole, showToast from app.js when they are defined, 
-// or access them globally if we attach them to window or pass them.
-// Let's import them from app.js using dynamic imports or standard imports if they are exported.
-// Since app.js is the entry point, it can export impersonateRole, showToast, etc.
-import { impersonateRole, showToast } from './app.js';
+// Reference app.js functions through window object to avoid circular dependencies
+function showToast(...args) {
+  if (window.showToast) {
+    window.showToast(...args);
+  } else {
+    console.warn("showToast called before window.showToast was initialized", args);
+  }
+}
+
+function impersonateRole(...args) {
+  if (window.impersonateRole) {
+    window.impersonateRole(...args);
+  } else {
+    console.warn("impersonateRole called before window.impersonateRole was initialized", args);
+  }
+}
 
 
 export function updateNavIndicator(noTransition = false) {

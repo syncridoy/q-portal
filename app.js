@@ -1571,6 +1571,7 @@ window.simulateCall = simulateCall;
 window.state = state;
 window.setLanguage = setLanguage;
 window.impersonateRole = impersonateRole;
+window.showToast = showToast;
 
 
 document.addEventListener("DOMContentLoaded", async () => {
