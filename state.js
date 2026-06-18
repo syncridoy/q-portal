@@ -217,6 +217,22 @@ export function getRoleCategory(roleId) {
   return "units";
 }
 
+export function normalizeAppointment(appt) {
+  if (!appt) return "";
+  const clean = appt.trim().toLowerCase();
+  if (clean === "q clk" || clean === "q clq") return "Q Clk";
+  if (clean === "aaqmg") return "AAQMG";
+  if (clean === "daqmg") return "DAQMG";
+  if (clean === "qm") return "QM";
+  if (clean === "oc") return "OC";
+  return appt;
+}
+
+export function toTitleCase(str) {
+  if (!str) return "";
+  return str.split(" ").map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(" ");
+}
+
 // --- Mock Data ---
 export const DONUT_MOCK_DATA = {
   "Jeep": { held: 180, ur: 40, att: 80, sur: 60 },
