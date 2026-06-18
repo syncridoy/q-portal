@@ -8,8 +8,8 @@ import { initMainDashboardCharts } from './charts.js';
 // Note: We need to import functions like impersonateRole, showToast from app.js when they are defined, 
 // or access them globally if we attach them to window or pass them.
 // Let's import them from app.js using dynamic imports or standard imports if they are exported.
-// Since app.js is the entry point, it can export saveLogisticsDB, impersonateRole, showToast, etc.
-import { saveLogisticsDB, impersonateRole, showToast } from './app.js';
+// Since app.js is the entry point, it can export impersonateRole, showToast, etc.
+import { impersonateRole, showToast } from './app.js';
 
 
 export function updateNavIndicator(noTransition = false) {
@@ -866,7 +866,7 @@ export function selectUnitForEditing(unitName) {
   }
 }
 
-export function handleSaveUnitData() {
+export async function handleSaveUnitData() {
   const unit = state.activeEditorUnit;
   if (!unit) return;
 
@@ -895,17 +895,39 @@ export function handleSaveUnitData() {
     return;
   }
 
-  state.logisticsDB[unit] = { vAvail, vTotal, pol, cook, waiter, strength };
-  saveLogisticsDB();
+  try {
+    const res = await fetch("/api/logistics", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        unitName: unit,
+        vAvail,
+        vTotal,
+        pol,
+        cook,
+        waiter,
+        strength
+      })
+    });
 
-  showToast(
-    state.language === "en" ? "Data Aggregated" : "ডাটা সংগৃহীত", 
-    TRANSLATIONS[state.language].toast_data_saved, 
-    "success"
-  );
+    if (res.ok) {
+      state.logisticsDB[unit] = { vAvail, vTotal, pol, cook, waiter, strength };
 
-  renderUnitsManagementTable();
-  renderDashboardContent();
+      showToast(
+        state.language === "en" ? "Data Aggregated" : "ডাটা সংগৃহীত", 
+        TRANSLATIONS[state.language].toast_data_saved, 
+        "success"
+      );
+
+      renderUnitsManagementTable();
+      renderDashboardContent();
+    } else {
+      showToast("Error", "Failed to update logistics data on server.", "danger");
+    }
+  } catch (error) {
+    console.error("Save logistics error:", error);
+    showToast("Error", "Could not connect to backend server.", "danger");
+  }
 }
 
 export function renderDirectoryCards() {

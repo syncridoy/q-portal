@@ -35,69 +35,82 @@ export let activeCropperInstance = null;
 export let currentCropFileInput = null;
 
 
-function initDatabases() {
-  // Self-healing database check to automatically migrate to the new 61-user config and clear legacy spellings
-  let storedUsers = localStorage.getItem("q_portal_users");
-  if (storedUsers) {
-    try {
-      const parsed = JSON.parse(storedUsers);
-      let needsReset = Object.keys(parsed).length !== IMMUTABLE_USER_REGISTRY.length;
-      if (!needsReset) {
-        // Completely eradicate any old clrk instances in stored database values
-        needsReset = Object.values(parsed).some(u => u.appointment && u.appointment.includes("Clrk"));
-      }
-      if (needsReset) {
-        localStorage.removeItem("q_portal_users");
-        localStorage.removeItem("q_portal_logistics");
-      }
-    } catch(err) {
-      localStorage.removeItem("q_portal_users");
+export async function initDatabases() {
+  try {
+    const usersRes = await fetch("/api/users");
+    state.usersDB = await usersRes.json();
+    
+    const logisticsRes = await fetch("/api/logistics");
+    state.logisticsDB = await logisticsRes.json();
+  } catch (err) {
+    console.error("Failed to initialize database from API:", err);
+  }
+}
+
+export function initDashboard(preserveTab = false) {
+  if (!state.currentUser) return;
+
+  // Reset active tab key when initializing dashboard unless preserveTab is set
+  if (!preserveTab) {
+    const role = state.currentUser.role;
+    const category = getRoleCategory(role);
+    state.activeTabKey = ROLE_TABS[category][0];
+  }
+
+  // Render Branding name and Logo dynamically resolving assigned unit name
+  let brandName = state.currentUser.assigned || state.currentUser.assignedUnit || state.currentUser.unitName || state.currentUser.scopeUnit || state.currentUser.scopeBde || "HQ 55 Inf Div";
+  if (Array.isArray(brandName)) {
+    brandName = brandName[0];
+  }
+  if (brandName === "ALL") {
+    brandName = "HQ 55 Inf Div";
+  }
+  
+  const brandNameEl = document.getElementById("header-brand-name");
+  if (brandNameEl) {
+    brandNameEl.innerText = brandName;
+  }
+
+  // Set profile info
+  const avatarEl = document.getElementById("header-user-avatar");
+  if (avatarEl) {
+    avatarEl.src = state.currentUser.avatar || "55_Inf_div.svg";
+  }
+
+  // Strip away any "BA No" or "Army No" literal string prefixes. Render only the raw identification number
+  const baEl = document.getElementById("header-user-ba");
+  if (baEl) baEl.innerText = state.currentUser.baNo || "";
+
+  // Render Rank with title-case format
+  const rankEl = document.getElementById("header-user-rank");
+  if (rankEl) rankEl.innerText = toTitleCase(state.currentUser.rank);
+
+  const nameEl = document.getElementById("header-user-name");
+  if (nameEl) nameEl.innerText = state.currentUser.fullName;
+
+  // Normalize appointment to standard mixed-case/title-case format
+  const apptEl = document.getElementById("header-user-appt");
+  if (apptEl) apptEl.innerText = normalizeAppointment(state.currentUser.appointment);
+
+  // Render tabs
+  renderNavigationTabs();
+
+  // Sync language switchers
+  syncLanguageSwitchers();
+
+  // Conditionally hide/show notification bell with strict !important rules (Division level Role 5/6 gets hidden)
+  const isDivLevel = [5, 6].includes(Number(state.currentUser.role));
+  const bellBtn = document.getElementById("notification-bell-btn");
+  if (bellBtn) {
+    if (isDivLevel) {
+      bellBtn.style.setProperty("display", "none", "important");
+    } else {
+      bellBtn.style.setProperty("display", "flex", "important");
     }
   }
 
-  if (!localStorage.getItem("q_portal_users")) {
-    localStorage.setItem("q_portal_users", JSON.stringify(INITIAL_USERS));
-  }
-  state.usersDB = JSON.parse(localStorage.getItem("q_portal_users"));
-
-  // Self-healing migration to ensure 'assigned', 'assignedUnit', and 'unitName' are populated for all users in DB
-  let updatedUsers = false;
-  Object.keys(state.usersDB).forEach(username => {
-    const user = state.usersDB[username];
-    const regUser = IMMUTABLE_USER_REGISTRY.find(ru => ru.username === username);
-    if (regUser) {
-      const canonicalAssigned = regUser.assigned === "Rawshan Ara Regt Artly" ? "Rawshan Ara Regt Arty" : regUser.assigned;
-      if (!user.assigned || user.assigned !== canonicalAssigned) {
-        user.assigned = canonicalAssigned;
-        updatedUsers = true;
-      }
-      if (!user.assignedUnit || user.assignedUnit !== canonicalAssigned) {
-        user.assignedUnit = canonicalAssigned;
-        updatedUsers = true;
-      }
-      if (!user.unitName || user.unitName !== canonicalAssigned) {
-        user.unitName = canonicalAssigned;
-        updatedUsers = true;
-      }
-    }
-  });
-  if (updatedUsers) {
-    saveUsersDB();
-  }
-
-  if (!localStorage.getItem("q_portal_logistics")) {
-    localStorage.setItem("q_portal_logistics", JSON.stringify(INITIAL_LOGISTICS));
-  }
-  state.logisticsDB = JSON.parse(localStorage.getItem("q_portal_logistics"));
-}
-
-function saveUsersDB() {
-  localStorage.setItem("q_portal_users", JSON.stringify(state.usersDB));
-}
-
-export function saveLogisticsDB() {
-  localStorage.setItem("q_portal_logistics", JSON.stringify(state.logisticsDB));
-  localStorage.setItem("q_portal_last_update", Date.now().toString());
+  // Render active tab content
+  renderPortalMainContent();
 }
 
 export function showToast(title, body, type = "info") {
@@ -119,7 +132,7 @@ export function showToast(title, body, type = "info") {
   }, 5000);
 }
 
-function handleLogin() {
+async function handleLogin() {
   const userInp = document.getElementById("username").value.trim().toLowerCase();
   const passInp = document.getElementById("password").value;
 
@@ -136,75 +149,82 @@ function handleLogin() {
     passwordError.innerText = "";
   }
 
-  // Lookup user by Username OR Mobile Number (Exact, stripped digits, or last 4 digits)
-  let user = state.usersDB[userInp];
-  if (!user) {
-    user = Object.values(state.usersDB).find(u => {
-      if (!u.mobile) return false;
-      const cleanMobile = u.mobile.replace(/\D/g, "");
-      const cleanInput = userInp.replace(/\D/g, "");
-      return cleanMobile === cleanInput || u.mobile === userInp || u.mobile.slice(-4) === userInp;
+  try {
+    const res = await fetch("/api/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ username: userInp, password: passInp })
     });
-  }
-
-  if (!user) {
-    if (usernameError) {
-      usernameError.innerText = state.language === "en" ? "Incorrect username or phone." : "ইউজারনেম বা ফোন নম্বর সঠিক নয়।";
-      usernameError.style.display = "block";
-    }
-    return;
-  }
-
-  if (user.password === passInp) {
-    state.currentUser = user;
-    showToast(
-      TRANSLATIONS[state.language].toast_login_success, 
-      `${user.fullName} (${user.rank}) - Role ${user.role} Active`, 
-      "success"
-    );
-
-    if (user.is_first_login) {
-      // 1. Content Cross-fade: Fade out the login form input fields within 0.2s
-      const loginWrapper = document.getElementById("login-form-wrapper");
-      if (loginWrapper) {
-        loginWrapper.style.opacity = "0";
-        loginWrapper.style.pointerEvents = "none";
-      }
-
-      // 2. Dynamic style / dimension overhaul & glide morph triggers
-      const splitCard = document.querySelector(".login-split-card");
-      if (splitCard) {
-        splitCard.classList.add("morph-to-setup");
-      }
+    
+    if (res.ok) {
+      const data = await res.json();
+      const user = data.user;
+      state.currentUser = user;
+      state.usersDB[user.username] = user;
       
-      // 3. Global Canvas Backdrop Blur overlay activation
-      const blurOverlay = document.getElementById("global-blur-overlay");
-      if (blurOverlay) {
-        blurOverlay.classList.add("active");
-      }
+      showToast(
+        TRANSLATIONS[state.language].toast_login_success, 
+        `${user.fullName} (${user.rank}) - Role ${user.role} Active`, 
+        "success"
+      );
 
-      // 4. Delay state swap and Wizard instantiation until morph animation (600ms) finishes
-      setTimeout(() => {
-        switchView("setup");
-        initSetupWizard();
-      }, 600);
-    } else {
-      switchView("dashboard");
-      initDashboard();
-    }
-  } else {
-    if (passwordError) {
-      if (passInp === "temp123" && !user.is_first_login) {
-        passwordError.innerText = state.language === "en" 
-          ? "You entered an old password." 
-          : "আপনি একটি পুরাতন পাসওয়ার্ড লিখেছেন।";
+      if (user.is_first_login) {
+        // 1. Content Cross-fade: Fade out the login form input fields within 0.2s
+        const loginWrapper = document.getElementById("login-form-wrapper");
+        if (loginWrapper) {
+          loginWrapper.style.opacity = "0";
+          loginWrapper.style.pointerEvents = "none";
+        }
+
+        // 2. Dynamic style / dimension overhaul & glide morph triggers
+        const splitCard = document.querySelector(".login-split-card");
+        if (splitCard) {
+          splitCard.classList.add("morph-to-setup");
+        }
+        
+        // 3. Global Canvas Backdrop Blur overlay activation
+        const blurOverlay = document.getElementById("global-blur-overlay");
+        if (blurOverlay) {
+          blurOverlay.classList.add("active");
+        }
+
+        // 4. Delay state swap and Wizard instantiation until morph animation (600ms) finishes
+        setTimeout(() => {
+          switchView("setup");
+          initSetupWizard();
+        }, 600);
       } else {
-        passwordError.innerText = state.language === "en" 
-          ? "Incorrect password." 
-          : "পাসওয়ার্ড সঠিক নয়।";
+        switchView("dashboard");
+        initDashboard();
       }
-      passwordError.style.display = "block";
+    } else {
+      const errData = await res.json();
+      if (res.status === 401 && errData.old_password) {
+        if (passwordError) {
+          passwordError.innerText = state.language === "en" 
+            ? "You entered an old password." 
+            : "আপনি একটি পুরাতন পাসওয়ার্ড লিখেছেন।";
+          passwordError.style.display = "block";
+        }
+      } else if (res.status === 401 && errData.message === "Incorrect password.") {
+        if (passwordError) {
+          passwordError.innerText = state.language === "en" 
+            ? "Incorrect password." 
+            : "পাসওয়ার্ড সঠিক নয়।";
+          passwordError.style.display = "block";
+        }
+      } else {
+        if (usernameError) {
+          usernameError.innerText = state.language === "en" 
+            ? "Incorrect username or phone." 
+            : "ইউজারনেম বা ফোন নম্বর সঠিক নয়।";
+          usernameError.style.display = "block";
+        }
+      }
     }
+  } catch (error) {
+    console.error("Login connection error:", error);
+    showToast("Connection Error", "Failed to connect to login server.", "danger");
   }
 }
 
@@ -220,16 +240,24 @@ function handleLogout() {
   if (navbar) navbar.style.display = "none";
 }
 
-function resetSystemState() {
-  localStorage.removeItem("q_portal_users");
-  localStorage.removeItem("q_portal_logistics");
-  initDatabases();
-  showToast(
-    state.language === "en" ? "System Reset" : "সিস্টেম রিসেট",
-    state.language === "en" ? "Demo accounts and setup states have been reset." : "ডেমো অ্যাকাউন্ট এবং সেটআপ স্টেট রিসেট করা হয়েছে।",
-    "success"
-  );
-  handleLogout();
+async function resetSystemState() {
+  try {
+    const res = await fetch("/api/reset", { method: "POST" });
+    if (res.ok) {
+      await initDatabases();
+      showToast(
+        state.language === "en" ? "System Reset" : "সিস্টেম রিসেট",
+        state.language === "en" ? "Demo accounts and setup states have been reset." : "ডেমো অ্যাকাউন্ট এবং সেটআপ স্টেট রিসেট করা হয়েছে।",
+        "success"
+      );
+      handleLogout();
+    } else {
+      showToast("Error", "Failed to reset system database.", "danger");
+    }
+  } catch (err) {
+    console.error("System reset error:", err);
+    showToast("Error", "Could not connect to backend server.", "danger");
+  }
 }
 
 function togglePasswordVisibility(inputId, btn) {
@@ -471,40 +499,80 @@ function handleResendOTP() {
   sendMockOTP();
 }
 
-function handleSetupNext() {
+async function handleSetupNext() {
   if (validateSetupStep()) {
     if (state.currentSetupStep < 3) {
       state.currentSetupStep++;
       updateSetupWizardUI();
     } else {
       const user = state.currentUser;
-      const userObj = state.usersDB[user.username];
-      
-      userObj.password = document.getElementById("setup-new-password").value;
-      userObj.mobile = document.getElementById("setup-mobile").value.trim();
-      userObj.baNo = document.getElementById("setup-ba-no").value.trim();
-      userObj.rank = document.getElementById("setup-rank").value;
-      userObj.fullName = document.getElementById("setup-fullname").value.trim();
-      userObj.avatar = state.selectedAvatar;
-      userObj.is_first_login = false;
-      
-      saveUsersDB();
-      state.currentUser = userObj;
-      
-      showToast(
-        state.language === "en" ? "Wizard Completed" : "সেটআপ সম্পন্ন", 
-        TRANSLATIONS[state.language].toast_setup_complete, 
-        "success"
-      );
-      
-      setTimeout(() => {
-        const header = document.getElementById("portal-header");
-        if (header) {
-          header.style.setProperty("display", "flex", "important");
+      const newPassword = document.getElementById("setup-new-password").value;
+      const mobile = document.getElementById("setup-mobile").value.trim();
+      const baNo = document.getElementById("setup-ba-no").value.trim();
+      const rank = document.getElementById("setup-rank").value;
+      const fullName = document.getElementById("setup-fullname").value.trim();
+      const avatar = state.selectedAvatar;
+
+      try {
+        // 1. Update Profile details (including mobile)
+        const profileRes = await fetch("/api/profile", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            username: user.username,
+            rank,
+            baNo,
+            fullName,
+            avatar,
+            mobile
+          })
+        });
+
+        if (!profileRes.ok) {
+          showToast("Error", "Failed to update profile details.", "danger");
+          return;
         }
-        switchView("dashboard");
-        initDashboard();
-      }, 1000);
+
+        // 2. Update Password and set is_first_login = false (which is 0 in SQLite)
+        const pwdRes = await fetch("/api/change-password", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            username: user.username,
+            newPassword,
+            is_first_login: 0
+          })
+        });
+
+        if (!pwdRes.ok) {
+          showToast("Error", "Failed to finalize account setup.", "danger");
+          return;
+        }
+
+        const data = await pwdRes.json();
+        const updatedUser = data.user;
+        state.currentUser = updatedUser;
+        state.usersDB[updatedUser.username] = updatedUser;
+
+        showToast(
+          state.language === "en" ? "Wizard Completed" : "সেটআপ সম্পন্ন", 
+          TRANSLATIONS[state.language].toast_setup_complete, 
+          "success"
+        );
+        
+        setTimeout(() => {
+          const header = document.getElementById("portal-header");
+          if (header) {
+            header.style.setProperty("display", "flex", "important");
+          }
+          switchView("dashboard");
+          initDashboard();
+        }, 1000);
+
+      } catch (error) {
+        console.error("Wizard setup completion error:", error);
+        showToast("Connection Error", "Could not save wizard details to the server.", "danger");
+      }
     }
   }
 }
@@ -579,27 +647,38 @@ function checkPasswordMatch() {
   }
 }
 
-export function impersonateRole(username) {
-  const user = state.usersDB[username];
-  if (!user) return;
+export async function impersonateRole(username) {
+  try {
+    const res = await fetch("/api/impersonate", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ username })
+    });
+    if (res.ok) {
+      const data = await res.json();
+      const user = data.user;
+      state.currentUser = user;
+      state.usersDB[user.username] = user;
+      
+      if (user.is_first_login) {
+        switchView("setup");
+        initSetupWizard();
+      } else {
+        switchView("dashboard");
+        initDashboard();
+      }
+      
+      showToast(
+        state.language === "en" ? "Identity Swapped" : "আইডেন্টিটি সুইপড",
+        `Active user: ${user.fullName} (${user.rank}) - Scope: ${user.scopeUnit || user.scopeBde || "Division HQ"}`,
+        "success"
+      );
 
-  state.currentUser = user;
-  
-  if (user.is_first_login) {
-    switchView("setup");
-    initSetupWizard();
-  } else {
-    switchView("dashboard");
-    initDashboard();
+      document.getElementById("simulator-panel-container").classList.remove("open");
+    }
+  } catch (err) {
+    console.error("Impersonation error:", err);
   }
-  
-  showToast(
-    state.language === "en" ? "Identity Swapped" : "আইডেন্টিটি সুইপড",
-    `Active user: ${user.fullName} (${user.rank}) - Scope: ${user.scopeUnit || user.scopeBde || "Division HQ"}`,
-    "success"
-  );
-
-  document.getElementById("simulator-panel-container").classList.remove("open");
 }
 
 function openEditProfileModal() {
@@ -685,7 +764,7 @@ function closeEditProfileModal() {
   document.body.classList.remove("modal-open");
 }
 
-function saveEditProfile() {
+async function saveEditProfile() {
   const baInput = document.getElementById("edit-ba-no");
   const nameInput = document.getElementById("edit-fullname");
   const rankHidden = document.getElementById("edit-rank");
@@ -714,34 +793,49 @@ function saveEditProfile() {
   const user = state.currentUser;
   if (!user) return;
 
-  // Update state
-  user.baNo = baNo;
-  user.fullName = fullName;
-  user.rank = rank;
-  if (state.selectedEditAvatar) {
-    user.avatar = state.selectedEditAvatar;
+  const avatar = state.selectedEditAvatar || user.avatar;
+
+  try {
+    const res = await fetch("/api/profile", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        username: user.username,
+        rank,
+        baNo,
+        fullName,
+        avatar
+      })
+    });
+    
+    if (res.ok) {
+      const result = await res.json();
+      state.currentUser = result.user;
+      state.usersDB[user.username] = result.user;
+
+      // Refresh Top Header widgets instantly without reloading
+      initDashboard(true);
+      
+      // Re-render other components to propagate updates instantly
+      renderHierarchyTree();
+      renderDashboardContent();
+      renderRoleImpersonatorList();
+
+      // Close modal
+      closeEditProfileModal();
+
+      showToast(
+        state.language === "en" ? "Profile Updated" : "প্রোফাইল সংরক্ষিত",
+        state.language === "en" ? "Your profile details have been saved." : "আপনার প্রোফাইল তথ্য সংরক্ষণ করা হয়েছে।",
+        "success"
+      );
+    } else {
+      showToast("Error", "Failed to update profile on server.", "danger");
+    }
+  } catch (err) {
+    console.error("Profile update error:", err);
+    showToast("Error", "Could not connect to backend server.", "danger");
   }
-
-  // Save back to databases
-  state.usersDB[user.username] = user;
-  saveUsersDB();
-
-  // Refresh Top Header widgets instantly without reloading
-  initDashboard(true);
-  
-  // Re-render other components to propagate updates instantly
-  renderHierarchyTree();
-  renderDashboardContent();
-  renderRoleImpersonatorList();
-
-  // Close modal
-  closeEditProfileModal();
-
-  showToast(
-    state.language === "en" ? "Profile Updated" : "প্রোফাইল সংরক্ষিত",
-    state.language === "en" ? "Your profile details have been saved." : "আপনার প্রোফাইল তথ্য সংরক্ষণ করা হয়েছে।",
-    "success"
-  );
 }
 
 function openChangePasswordModal() {
@@ -1067,7 +1161,7 @@ function stopCpTimer() {
   }
 }
 
-function handleVerifyOTPStep2() {
+async function handleVerifyOTPStep2() {
   // Collect 6-digit code
   let code = "";
   for (let i = 1; i <= 6; i++) {
@@ -1093,32 +1187,52 @@ function handleVerifyOTPStep2() {
 
   // Correct OTP (Auto-passed)! Commit new password
   const user = state.currentUser;
-  user.password = cpTempNewPassword;
-  state.usersDB[user.username] = user;
-  saveUsersDB();
 
-  // Show success text in green directly underneath the OTP input box
-  if (otpErr) {
-    otpErr.innerText = state.language === "en" ? "Password updated successfully." : "পাসওয়ার্ড সফলভাবে আপডেট করা হয়েছে।";
-    otpErr.style.color = "#10b981"; // Success Green
-    otpErr.style.display = "block";
+  try {
+    const res = await fetch("/api/change-password", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        username: user.username,
+        newPassword: cpTempNewPassword,
+        is_first_login: user.is_first_login ? 1 : 0
+      })
+    });
+
+    if (res.ok) {
+      const data = await res.json();
+      state.currentUser = data.user;
+      state.usersDB[user.username] = data.user;
+
+      // Show success text in green directly underneath the OTP input box
+      if (otpErr) {
+        otpErr.innerText = state.language === "en" ? "Password updated successfully." : "পাসওয়ার্ড সফলভাবে আপডেট করা হয়েছে।";
+        otpErr.style.color = "#10b981"; // Success Green
+        otpErr.style.display = "block";
+      }
+
+      showToast(
+        state.language === "en" ? "Success" : "সফল",
+        state.language === "en" ? "Password changed successfully." : "পাসওয়ার্ড সফলভাবে পরিবর্তন করা হয়েছে।",
+        "success"
+      );
+
+      // Clear session/form data immediately on perfection
+      stopCpTimer();
+      cpOtpCode = "";
+      cpTempNewPassword = "";
+
+      // Auto close modal after exactly 1.5s
+      setTimeout(() => {
+        closeChangePasswordModal();
+      }, 1500);
+    } else {
+      showToast("Error", "Failed to update password on server.", "danger");
+    }
+  } catch (err) {
+    console.error("Change password verify error:", err);
+    showToast("Error", "Could not connect to backend server.", "danger");
   }
-
-  showToast(
-    state.language === "en" ? "Success" : "সফল",
-    state.language === "en" ? "Password changed successfully." : "পাসওয়ার্ড সফলভাবে পরিবর্তন করা হয়েছে।",
-    "success"
-  );
-
-  // Clear session/form data immediately on perfection
-  stopCpTimer();
-  cpOtpCode = "";
-  cpTempNewPassword = "";
-
-  // Auto close modal after exactly 1.5s
-  setTimeout(() => {
-    closeChangePasswordModal();
-  }, 1500);
 }
 
 function setupCpOtpInputs() {
@@ -1458,8 +1572,8 @@ window.setLanguage = setLanguage;
 window.impersonateRole = impersonateRole;
 
 
-document.addEventListener("DOMContentLoaded", () => {
-  initDatabases();
+document.addEventListener("DOMContentLoaded", async () => {
+  await initDatabases();
 
   // Bind Language Switchers
   const langToggleBtn = document.getElementById("lang-toggle-btn");
