@@ -132,7 +132,8 @@ export function showToast(title, body, type = "info") {
   }, 5000);
 }
 
-async function handleLogin() {
+async function handleLogin(e) {
+  if (e) e.preventDefault();
   const userInp = document.getElementById("username").value.trim().toLowerCase();
   const passInp = document.getElementById("password").value;
 
@@ -1715,7 +1716,15 @@ document.addEventListener("DOMContentLoaded", async () => {
   });
 
   // 2. Auth Submissions
-  document.getElementById("btn-login-submit").addEventListener("click", handleLogin);
+  const loginForm = document.getElementById("login-form");
+  if (loginForm) {
+    loginForm.addEventListener("submit", handleLogin);
+  } else {
+    const loginBtn = document.getElementById("btn-login-submit");
+    if (loginBtn) {
+      loginBtn.addEventListener("click", handleLogin);
+    }
+  }
   const logoutBtn = document.getElementById("header-logout-btn") || document.getElementById("logout-btn");
   if (logoutBtn) {
     logoutBtn.addEventListener("click", handleLogout);
