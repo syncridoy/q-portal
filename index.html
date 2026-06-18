@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="en" class="auth-active">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Q-portal | Administrative Resource Management System</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.css">
+  <!-- Chart.js CDN for modern interactive animations -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="auth-active">
+
+  <!-- Mesh background circles -->
+  <div class="mesh-background">
+    <div class="mesh-circle circle-1"></div>
+    <div class="mesh-circle circle-2"></div>
+    <div class="mesh-circle circle-3"></div>
+  </div>
+
+  <!-- Intense full-screen backdrop blur layer for morphing glass card overlay -->
+  <div class="global-backdrop-blur" id="global-blur-overlay"></div>
+
+  <div class="app-container">
+    <!-- The application shell top header is now integrated directly inside the post-login portal view to create a unified widescreen canvas. -->
+      <!-- ================= VIEW: LOGIN (REDESIGNED PREMIUM TWO-COLUMN SPLIT) ================= -->
+    <div id="view-login" class="auth-container animate-fade active">
+      <div class="login-split-card">
+        <!-- Left Column: Branding, Insignia, Controls (Unified Widescreen Glassmorphic Layout) -->
+        <div class="login-split-left">
+          <div class="login-greetings">
+            <h2 data-translate="login_welcome">As-salamu alaykum</h2>
+            <p data-translate="login_subtext" class="login-subtext">Welcome to Q-portal</p>
+          </div>
+          
+          <div class="div-identity-row">
+            <div class="login-logo-circle">
+              <img src="logo.png" onerror="this.src='55_Inf_div.svg'" alt="55 Inf Div insignia" class="login-logo-img">
+            </div>
+            <div class="div-identity-text">
+              <h4 class="div-identity-title" data-translate="div_title">55 Inf Div</h4>
+              <p class="div-identity-subtitle" data-translate="div_subtitle">Excellence Everywhere</p>
+            </div>
+          </div>
+          
+          <div class="login-left-footer">
+            <div class="pill-lang-switcher" id="login-lang-switcher">
+              <span class="pill-lang-opt active" id="login-lang-opt-en">EN</span>
+              <span class="pill-lang-opt" id="login-lang-opt-bn">বাং</span>
+            </div>
+            
+            <div class="footer-social-icons">
+              <a href="tel:+8801769554621" class="social-wire-link" title="Call Division Exchange">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
+              </a>
+              <a href="https://wa.me/8801769554621" target="_blank" class="social-wire-link" title="Official Chat Room">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>
+              </a>
+              <a href="mailto:aqbr.55div@gmail.com" class="social-wire-link" title="Secure Email Service">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Column: Authentication Card/Form -->
+        <div class="login-split-right">
+          <div class="login-form-card">
+            
+            <!-- Login Input elements wrapper (fades out in 0.2s) -->
+            <div id="login-form-wrapper" style="width: 100%; transition: opacity 0.2s ease;">
+              <h3 class="login-form-title" data-translate="login_caps">LOGIN</h3>
+              
+              <form id="login-form" onsubmit="event.preventDefault();" style="width: 100%; display: flex; flex-direction: column;">
+                <div class="floating-label-group">
+                  <input type="text" id="username" class="form-input" placeholder=" " required autocomplete="username">
+                  <label for="username" data-translate="label_username">Username or phone number</label>
+                  <div class="field-error-message" id="username-error-msg" style="display: none; color: var(--danger); font-size: 11px; margin-top: 4px; font-weight: 500; font-family: 'Inter', sans-serif;"></div>
+                </div>
+                <div class="floating-label-group password-group" style="margin-bottom: 12px;">
+                  <input type="password" id="password" class="form-input" placeholder=" " required autocomplete="current-password">
+                  <label for="password" data-translate="label_password">Password</label>
+                  <button type="button" class="password-toggle-btn" onclick="togglePasswordVisibility('password', this)">
+                    <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" class="eye-icon"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                  </button>
+                  <div class="field-error-message" id="password-error-msg" style="display: none; color: var(--danger); font-size: 11px; margin-top: 4px; font-weight: 500; font-family: 'Inter', sans-serif;"></div>
+                </div>
+                
+                <div class="login-form-links" style="display: flex; justify-content: flex-end; margin-bottom: 24px; margin-top: -4px;">
+                  <a href="#" class="forgot-password-link" id="btn-forgot-password" data-translate="forgot_password" style="font-size: 12.5px; color: var(--text-muted); text-decoration: none; font-weight: 500; transition: var(--transition);">Forgot Password</a>
+                </div>
+                
+                <button type="submit" class="btn-login-submit-dark" id="btn-login-submit" data-translate="login_caps">LOGIN</button>
+              </form>
+            </div>
+
+            <!-- Setup Wizard elements wrapper (fades in once card centers and expands) -->
+            <div id="setup-wizard-wrapper" style="display: none; opacity: 0; width: 100%; flex-direction: column; align-items: center; gap: 24px; transition: opacity 0.4s ease;">
+              <div class="wizard-steps">
+                <div class="wizard-step-line-fill" id="wizard-progress-bar"></div>
+                
+                <div class="step-node active" id="step-node-1">
+                  <div class="step-circle">1</div>
+                  <span class="step-label" data-translate="setup_step_1">Security</span>
+                </div>
+                <div class="step-node" id="step-node-2">
+                  <div class="step-circle">2</div>
+                  <span class="step-label" data-translate="setup_step_2">Verification</span>
+                </div>
+                <div class="step-node" id="step-node-3">
+                  <div class="step-circle">3</div>
+                  <span class="step-label" data-translate="setup_step_3">User Info</span>
+                </div>
+              </div>
+
+              <div class="wizard-content" style="width: 100%;">
+                <!-- STEP 1: PASSWORD CHANGE (SLENDER LABELS & EYE TOGGLE) -->
+                <div class="wizard-panel active" id="wizard-panel-1">
+                  <p class="desc" data-translate="pwd_desc" style="text-align: center;">Update your password to secure your account.</p>
+                  
+                  <div class="password-group" style="max-width: 320px; margin: 0 auto 20px;">
+                    <div class="floating-label-group" style="margin-bottom: 0;">
+                      <input type="password" id="setup-new-password" class="form-input" placeholder=" " required autocomplete="new-password">
+                      <label for="setup-new-password" data-translate="label_new_pwd">New Password</label>
+                      <button type="button" class="password-toggle-btn" onclick="togglePasswordVisibility('setup-new-password', this)">
+                        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" class="eye-icon"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                      </button>
+                    </div>
+                    <div class="password-strength">
+                      <div class="password-strength-bar" id="pwd-strength-bar"></div>
+                    </div>
+                    <div class="password-feedback" id="pwd-strength-text" data-translate="pwd_weak">Weak - Minimum 8 characters with numbers & symbols required</div>
+                  </div>
+                  <div class="password-group" style="max-width: 320px; margin: 0 auto 20px;">
+                    <div class="floating-label-group" style="margin-bottom: 0;">
+                      <input type="password" id="setup-confirm-password" class="form-input" placeholder=" " required autocomplete="new-password">
+                      <label for="setup-confirm-password" data-translate="label_confirm_pwd">Confirm New Password</label>
+                      <button type="button" class="password-toggle-btn" onclick="togglePasswordVisibility('setup-confirm-password', this)">
+                        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" class="eye-icon"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                      </button>
+                    </div>
+                    <div class="password-feedback" id="setup-confirm-feedback" style="display: none;"></div>
+                  </div>
+                </div>
+
+                <!-- STEP 2: PHONE VERIFICATION (AUTOMATED PREFIX & TRANSITION) -->
+                <div class="wizard-panel" id="wizard-panel-2">
+                  <h3 data-translate="otp_heading" style="text-align: center;">Mobile Verification</h3>
+                  <p class="desc" style="text-align: center;">Enter the last 4 digits of your official mobile number.</p>
+                  
+                  <div class="floating-label-group" style="max-width: 320px; margin: 0 auto 20px;">
+                    <input type="text" id="setup-mobile" class="form-input" placeholder=" " required autocomplete="off" style="font-weight: 700; letter-spacing: 0.5px;">
+                    <label for="setup-mobile" data-translate="label_mobile">Official Mobile Number</label>
+                  </div>
+                  
+                  <div id="otp-verification-group" style="display: none; text-align: center; margin-top: 20px;">
+                    <p class="desc" style="color: var(--primary); font-weight: 600; margin-bottom: 12px;">Enter the 4-digit verification code.</p>
+                    <div class="otp-group compact-otp">
+                      <input type="text" maxlength="1" class="otp-input" id="otp-1">
+                      <input type="text" maxlength="1" class="otp-input" id="otp-2">
+                      <input type="text" maxlength="1" class="otp-input" id="otp-3">
+                      <input type="text" maxlength="1" class="otp-input" id="otp-4">
+                    </div>
+                    <p style="text-align: center; font-size: 12px; color: var(--text-muted); margin-top: 12px;">
+                      <span data-translate="otp_not_received">Didn't receive code?</span> 
+                      <a href="#" id="resend-otp-btn" style="color: var(--primary); font-weight: 700; text-decoration: none;" data-translate="otp_resend">Resend OTP</a>
+                    </p>
+                  </div>
+                </div>
+
+                <!-- STEP 3: UNIFIED PROFILE SETUP -->
+                <div class="wizard-panel" id="wizard-panel-3">
+                  <h3 data-translate="profile_heading" style="text-align: center; margin-bottom: 12px;">Update User Info</h3>
+                  
+                  <!-- Circular Profile Picture Dropzone -->
+                  <div class="profile-dropzone-wrapper">
+                    <div class="profile-dropzone" id="profile-upload-trigger">
+                      <div id="profile-dropzone-preview-container" class="profile-svg-placeholder">
+                        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#6b7280" stroke-width="1.5">
+                          <path d="M18 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                          <circle cx="11" cy="7" r="4" />
+                          <circle cx="18" cy="11" r="4" fill="#ffffff" stroke="#6b7280" stroke-width="1" />
+                          <path d="M18 9v4M16 11h4" stroke="#6b7280" stroke-width="1" stroke-linecap="round" />
+                        </svg>
+                      </div>
+                      <img src="" alt="Avatar Placeholder" id="profile-dropzone-preview" style="display: none; width: 100%; height: 100%; object-fit: cover;">
+                      <div class="dropzone-overlay">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2 2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg>
+                      </div>
+                    </div>
+                    <input type="file" id="setup-avatar-file" style="display: none;" accept="image/*">
+                  </div>
+
+                  <!-- Unified Inline Metadata Row -->
+                  <div id="profile-lbl-metadata" style="text-align: center; font-size: 10.5px; font-weight: 700; color: var(--text-muted); margin-bottom: 24px; letter-spacing: 0.5px;">
+                    Assigned: <span id="profile-lbl-unit-text" style="color: var(--primary); font-weight: 800;"></span> | Appointment: <span id="profile-lbl-appt-text" style="color: var(--primary); font-weight: 800;"></span>
+                  </div>
+
+                  <!-- Unified Input Fields -->
+                  <div class="floating-label-group" style="max-width: 320px; margin: 0 auto 20px;">
+                    <input type="text" id="setup-ba-no" class="form-input" placeholder=" " required autocomplete="off" style="font-weight: 700;">
+                    <label for="setup-ba-no">BA No / Army No</label>
+                  </div>
+                  
+                  <!-- Rank custom dropdown enclosed in white box -->
+                  <div class="custom-dropdown-container" id="rank-dropdown-container" style="max-width: 320px; margin: 0 auto 20px;">
+                    <div class="custom-dropdown-trigger" id="rank-trigger">
+                      <span class="dropdown-selected-value"></span>
+                      <label class="dropdown-label" data-translate="label_rank">Rank</label>
+                      <span class="select-arrow">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                      </span>
+                    </div>
+                    <div class="custom-dropdown-menu" id="rank-dropdown-menu">
+                      <!-- Populated dynamically by app.js -->
+                    </div>
+                    <input type="hidden" id="setup-rank" required>
+                  </div>
+                  
+                  <div class="floating-label-group" style="max-width: 320px; margin: 0 auto 20px;">
+                    <input type="text" id="setup-fullname" class="form-input" placeholder=" " required autocomplete="name">
+                    <label for="setup-fullname" data-translate="label_fullname">Full Name</label>
+                  </div>
+                </div>
+              </div>
+
+              <div class="wizard-actions">
+                <button class="btn-secondary" id="wizard-back-btn" style="visibility: hidden;" data-translate="btn_back">Previous</button>
+                <button class="btn-primary" id="wizard-next-btn" data-translate="btn_next">Next Step</button>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- ================= VIEW: MAIN PORTAL ================= -->
+    <div id="view-dashboard" class="portal-shell animate-fade" style="display: none;">
+      
+      <!-- STICKY TOP HEADER -->
+      <header class="portal-header" id="portal-header">
+        
+        <!-- Left Group: Branding + Language Toggle Switch -->
+        <div class="header-left">
+          <div class="header-branding">
+            <div class="brand-logo-circle">
+              <img src="logo.png" onerror="this.src='55_Inf_div.svg'" alt="Logo" class="brand-logo-img">
+            </div>
+            <span class="brand-short-name" id="header-brand-name"></span>
+          </div>
+          
+          <div class="header-lang-wrapper">
+            <div class="pill-lang-switcher" id="dashboard-lang-switcher">
+              <span class="pill-lang-opt active" id="dashboard-lang-opt-en">EN</span>
+              <span class="pill-lang-opt" id="dashboard-lang-opt-bn">বাং</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Center: Dynamic Navigation Links / Tabs -->
+        <nav class="header-nav" id="header-nav-tabs">
+          <!-- Populated dynamically via JS -->
+        </nav>
+
+        <!-- Right Group: Notification Bell + User Profile Widget -->
+        <div class="header-right">
+          <button class="btn-notification-bell" id="notification-bell-btn" title="Notifications">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+              <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+            </svg>
+          </button>
+
+          <div class="header-profile-widget" id="header-profile-trigger">
+            <div class="profile-widget-avatar-wrapper">
+              <img src="" alt="User profile" class="profile-widget-avatar" id="header-user-avatar">
+            </div>
+            <div class="profile-widget-info">
+              <div class="profile-info-row1">
+                <span class="profile-ba-no" id="header-user-ba"></span>
+                <span class="profile-rank" id="header-user-rank"></span>
+              </div>
+              <div class="profile-info-row2" id="header-user-name"></div>
+              <div class="profile-info-row3">
+                <span class="profile-appointment-text" id="header-user-appt"></span>
+              </div>
+            </div>
+            
+            <!-- Avatar Dropdown Menu -->
+            <div class="profile-dropdown-menu" id="profile-dropdown-menu">
+              <div class="profile-dropdown-item" id="dropdown-btn-edit" data-translate="menu_edit_profile">Edit User Info</div>
+              <div class="profile-dropdown-item" id="dropdown-btn-change-pwd" data-translate="menu_change_password">Change Password</div>
+              <div class="profile-dropdown-item danger" id="dropdown-btn-logout" data-translate="menu_logout">Logout</div>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <!-- MAIN CONTENT BLANK WRAPPER -->
+      <main class="portal-content" id="portal-main-content">
+        <!-- completely blank for now, waiting to render tab-specific components in future steps -->
+      </main>
+    </div>
+
+    <!-- ================= FLOATING ROLE SIMULATOR PANEL ================= -->
+    <!-- Trigger Button -->
+    <div class="sim-trigger" id="simulator-trigger-btn" title="Simulate Roles" style="background: var(--primary);">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+    </div>
+
+    <!-- Simulator panel -->
+    <div class="sim-panel glass-panel" id="simulator-panel-container">
+      <div>
+        <h4 data-translate="sim_heading">Administrative Role Impersonator</h4>
+        <p style="font-size: 11px; color: var(--text-muted); line-height: 1.4;" data-translate="sim_desc">Select a profile below to instantly switch sessions. Clerks can edit matching units; officers have dynamic read-only overview dashboards.</p>
+      </div>
+      <div class="sim-role-list" id="simulator-role-list-target">
+        <!-- Generated dynamically by app.js -->
+      </div>
+    </div>
+
+    <!-- Toast Notifications container -->
+    <div class="toast-container" id="toast-wrapper">
+      <!-- Dynamic toasts go here -->
+    </div>
+  </div>
+
+  <!-- ================= EDIT USER INFO MODAL ================= -->
+  <div class="modal-overlay" id="edit-profile-modal">
+    <div class="modal-card glass-panel animate-fade">
+      <h3 data-translate="modal_edit_title">Edit User Info</h3>
+      
+      <!-- Profile Picture Dropzone -->
+      <div class="profile-dropzone-wrapper">
+        <div class="profile-dropzone" id="edit-avatar-trigger">
+          <div id="edit-dropzone-preview-container" class="profile-svg-placeholder" style="display: none;">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#6b7280" stroke-width="1.5">
+              <path d="M18 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+              <circle cx="11" cy="7" r="4" />
+              <circle cx="18" cy="11" r="4" fill="#ffffff" stroke="#6b7280" stroke-width="1" />
+              <path d="M18 9v4M16 11h4" stroke="#6b7280" stroke-width="1" stroke-linecap="round" />
+            </svg>
+          </div>
+          <img src="" alt="Avatar Preview" id="edit-dropzone-preview" style="width: 100%; height: 100%; object-fit: cover;">
+          <div class="dropzone-overlay">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2 2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg>
+          </div>
+        </div>
+        <input type="file" id="edit-avatar-file" style="display: none;" accept="image/*">
+      </div>
+
+      <!-- Input Fields -->
+      <div class="floating-label-group" style="max-width: 320px; margin: 0 auto 20px;">
+        <input type="text" id="edit-ba-no" class="form-input" placeholder=" " required autocomplete="off" style="font-weight: 700;">
+        <label for="edit-ba-no">BA No / Army No</label>
+      </div>
+      
+      <!-- Rank dropdown -->
+      <div class="custom-dropdown-container" id="edit-rank-dropdown-container" style="max-width: 320px; margin: 0 auto 20px;">
+        <div class="custom-dropdown-trigger" id="edit-rank-trigger">
+          <span class="dropdown-selected-value" id="edit-rank-selected-value"></span>
+          <label class="dropdown-label" data-translate="label_rank">Rank</label>
+          <span class="select-arrow">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"></polyline></svg>
+          </span>
+        </div>
+        <div class="custom-dropdown-menu" id="edit-rank-dropdown-menu">
+          <!-- Populated dynamically by app.js -->
+        </div>
+        <input type="hidden" id="edit-rank" required>
+      </div>
+      
+      <div class="floating-label-group" style="max-width: 320px; margin: 0 auto 20px;">
+        <input type="text" id="edit-fullname" class="form-input" placeholder=" " required autocomplete="name">
+        <label for="edit-fullname" data-translate="label_fullname">Full Name</label>
+      </div>
+
+      <!-- Action buttons -->
+      <div class="wizard-actions" style="max-width: 320px; margin: 0 auto;">
+        <button class="btn-secondary" id="edit-cancel-btn" data-translate="btn_cancel">Cancel</button>
+        <button class="btn-primary" id="edit-save-btn" data-translate="btn_save_changes">Save Changes</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= IMAGE CROP MODAL ================= -->
+  <div class="modal-overlay" id="crop-modal" style="z-index: 2000;">
+    <div class="modal-card glass-panel animate-fade" style="max-width: 480px; width: 90%;">
+      <h3 data-translate="crop_modal_title">Crop Profile Picture</h3>
+      <div class="img-container">
+        <img id="crop-image-element">
+      </div>
+      <div class="wizard-actions" style="max-width: 320px; margin: 0 auto;">
+        <button class="btn-secondary" id="crop-cancel-btn" data-translate="btn_cancel">Cancel</button>
+        <button class="btn-primary" id="crop-apply-btn" data-translate="btn_crop_apply">Crop & Apply</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= CHANGE PASSWORD MODAL ================= -->
+  <div class="modal-overlay" id="change-password-modal" style="z-index: 1050;">
+    <div class="modal-card glass-panel animate-fade" style="max-width: 400px; width: 90%;">
+      <h3 id="change-pwd-modal-title" data-translate="modal_change_pwd_title">Change Password</h3>
+      
+      <!-- STEP 1: Password Input View -->
+      <form id="password-step-container" class="change-pwd-view active" style="width: 100%; display: flex; flex-direction: column; gap: 20px;" onsubmit="event.preventDefault();">
+        <div class="password-group" style="max-width: 320px; margin: 0 auto; width: 100%;">
+          <div class="floating-label-group" style="margin-bottom: 0;">
+            <input type="password" id="change-pwd-current" class="form-input" placeholder=" " required autocomplete="current-password">
+            <label for="change-pwd-current" data-translate="label_current_pwd">Current Password</label>
+          </div>
+          <div class="password-feedback" id="change-pwd-current-feedback" style="display: none; font-size: 11px; margin-top: 4px; font-weight: 500; text-align: left;"></div>
+        </div>
+        
+        <div class="password-group" style="max-width: 320px; margin: 0 auto; width: 100%;">
+          <div class="floating-label-group" style="margin-bottom: 0;">
+            <input type="password" id="change-pwd-new" class="form-input" placeholder=" " required autocomplete="new-password">
+            <label for="change-pwd-new" data-translate="label_new_pwd">New Password</label>
+          </div>
+          <div class="password-strength" style="display: none; margin-top: 6px; height: 4px; border-radius: 2px; overflow: hidden; background: transparent; width: 100%;">
+            <div class="password-strength-bar" id="cp-pwd-strength-bar" style="width: 0%; height: 100%; transition: width 0.3s ease, background-color 0.3s ease;"></div>
+          </div>
+          <div class="password-feedback" id="cp-pwd-strength-text" style="display: none; font-size: 10px; font-weight: 600; margin-top: 4px; text-align: left; min-height: 15px;"></div>
+        </div>
+        
+        <div class="password-group" style="max-width: 320px; margin: 0 auto; width: 100%;">
+          <div class="floating-label-group" style="margin-bottom: 0;">
+            <input type="password" id="change-pwd-confirm" class="form-input" placeholder=" " required autocomplete="new-password">
+            <label for="change-pwd-confirm" data-translate="label_confirm_pwd">Confirm New Password</label>
+          </div>
+          <div class="password-feedback" id="change-pwd-confirm-feedback" style="display: none; font-size: 11px; margin-top: 4px; font-weight: 500; text-align: left;"></div>
+        </div>
+        
+        <div class="wizard-actions" style="max-width: 320px; margin: 0 auto; width: 100%;">
+          <button class="btn-secondary" id="change-pwd-cancel-btn" data-translate="btn_cancel">Cancel</button>
+          <button class="btn-primary" id="change-pwd-update-btn" data-translate="btn_update_password">Update Password</button>
+        </div>
+      </form>
+ 
+      <!-- STEP 2: OTP Verification View -->
+      <form id="otp-step-container" class="change-pwd-view hidden" style="width: 100%; display: flex; flex-direction: column; align-items: center; gap: 20px;" onsubmit="event.preventDefault();">
+        <p class="desc" data-translate="change_pwd_otp_desc" style="text-align: center; margin-bottom: 0; font-size: 12px; color: var(--text-muted); line-height: 1.5;">A 6-digit verification code has been sent to your official number.</p>
+        
+        <!-- Center-aligned 6-digit OTP code input block -->
+        <div class="otp-group compact-otp" id="change-pwd-otp-group" style="margin: 0; display: flex; gap: 8px; justify-content: center; width: 100%;">
+          <input type="text" maxlength="1" class="otp-input change-pwd-otp-input" id="cp-otp-1">
+          <input type="text" maxlength="1" class="otp-input change-pwd-otp-input" id="cp-otp-2">
+          <input type="text" maxlength="1" class="otp-input change-pwd-otp-input" id="cp-otp-3">
+          <input type="text" maxlength="1" class="otp-input change-pwd-otp-input" id="cp-otp-4">
+          <input type="text" maxlength="1" class="otp-input change-pwd-otp-input" id="cp-otp-5">
+          <input type="text" maxlength="1" class="otp-input change-pwd-otp-input" id="cp-otp-6">
+        </div>
+        
+        <div class="field-error-message" id="otp-error-message" style="display: none; color: var(--danger); font-size: 11px; font-weight: 500; text-align: center;"></div>
+        
+        <!-- Timer & Resend Link -->
+        <div style="text-align: center; font-size: 12px; color: var(--text-muted); margin: 0; display: flex; flex-direction: column; gap: 6px; align-items: center;">
+          <span id="otp-timer-display" style="font-weight: 600;">01:00</span>
+          <a href="#" id="cp-resend-btn" style="color: var(--primary); font-weight: 700; text-decoration: none;" data-translate="otp_resend">Resend OTP</a>
+        </div>
+        
+        <div class="wizard-actions" style="max-width: 320px; margin: 0 auto; width: 100%;">
+          <button class="btn-secondary" id="change-pwd-back-btn" data-translate="btn_back">Back</button>
+        </div>
+      </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Subtle Reset State Trigger Link (For manual testing verification) -->
+  <a href="#" id="btn-reset-db" data-translate="btn_reset_state" style="position: fixed; bottom: 12px; right: 12px; font-size: 10px; color: var(--text-muted); opacity: 0.35; text-decoration: none; z-index: 1000; font-weight: 500; transition: opacity 0.2s;">🔄 Reset System Data</a>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
