@@ -122,7 +122,7 @@ export function initMainDashboardCharts() {
             callbacks: {
               label: function(context) {
                 const val = context.raw;
-                return (state.language === 'bn' ? 'ব্যয়: ' : 'Exp: ') + formatDisplayNumber(val);
+                return (state.language === 'bn' ? 'খরচ: ' : 'Exp: ') + formatDisplayNumber(val);
               }
             }
           }

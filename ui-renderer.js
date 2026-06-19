@@ -394,35 +394,28 @@ export function renderMainDashboard(container) {
           <!-- Card 4: Total Exp Line Chart -->
           <div class="dashboard-card">
             <div class="card-header-row">
-              <h4 class="card-header-title">${t("card_title_total_exp")}</h4>
-              <div style="display: flex; gap: 8px;">
-                <select id="line-year-select" class="mini-dropdown">
-                  <option value="2023-24" ${state.dashboard.lineYear === "2023-24" ? "selected" : ""}>2023-24</option>
-                  <option value="2024-25" ${state.dashboard.lineYear === "2024-25" ? "selected" : ""}>2024-25</option>
-                  <option value="2025-26" ${state.dashboard.lineYear === "2025-26" ? "selected" : ""}>2025-26</option>
-                  <option value="2026-27" ${state.dashboard.lineYear === "2026-27" ? "selected" : ""}>2026-27</option>
-                </select>
-                <select id="line-grade-select" class="mini-dropdown">
-                  <option value="Diesel" ${state.dashboard.lineGrade === "Diesel" ? "selected" : ""}>Diesel</option>
-                  <option value="MS-74" ${state.dashboard.lineGrade === "MS-74" ? "selected" : ""}>MS-74</option>
-                  <option value="100 Octane" ${state.dashboard.lineGrade === "100 Octane" ? "selected" : ""}>100 Octane</option>
-                </select>
-              </div>
+              <select id="line-year-select" class="mini-dropdown">
+                <option value="2023-24" ${state.dashboard.lineYear === "2023-24" ? "selected" : ""}>2023-24</option>
+                <option value="2024-25" ${state.dashboard.lineYear === "2024-25" ? "selected" : ""}>2024-25</option>
+                <option value="2025-26" ${state.dashboard.lineYear === "2025-26" ? "selected" : ""}>2025-26</option>
+                <option value="2026-27" ${state.dashboard.lineYear === "2026-27" ? "selected" : ""}>2026-27</option>
+              </select>
+              <select id="line-grade-select" class="mini-dropdown">
+                <option value="Diesel" ${state.dashboard.lineGrade === "Diesel" ? "selected" : ""}>Diesel</option>
+                <option value="MS-74" ${state.dashboard.lineGrade === "MS-74" ? "selected" : ""}>MS-74</option>
+                <option value="100 Octane" ${state.dashboard.lineGrade === "100 Octane" ? "selected" : ""}>100 Octane</option>
+              </select>
             </div>
             <div style="display: flex; width: 100%; align-items: center; gap: 20px; flex: 1;">
               <!-- Left side stats -->
               <div style="flex: 0 0 160px; display: flex; flex-direction: column; gap: 14px;">
-                <div style="display: flex; gap: 6px; align-items: center;">
-                  <span id="badge-year" class="chart-badge">${currentYearDisplay}</span>
-                  <span id="badge-grade" class="chart-badge">${currentGradeDisplay}</span>
+                <div>
+                  <span style="font-size: 11px; font-weight: 600; color: #64748b; display: block;" data-translate="lbl_total_alt">${t("lbl_total_alt")}</span>
+                  <span id="total-alt-value" style="font-size: 18px; font-weight: 800; color: #1e293b; display: block; font-family: 'Inter', sans-serif;">${formatDisplayNumber(initialLineVal.alt)}</span>
                 </div>
                 <div>
-                  <span style="font-size: 11px; font-weight: 600; color: #64748b; display: block;">${t("lbl_total_exp")}</span>
-                  <span id="total-exp-value" style="font-size: 18px; font-weight: 800; color: #1e293b; display: block; font-family: 'Inter', sans-serif;">${formatDisplayNumber(initialLineVal.total)}</span>
-                </div>
-                <div>
-                  <span style="font-size: 11px; font-weight: 600; color: #64748b; display: block;">${t("lbl_last_month_exp")}</span>
-                  <span id="last-month-value" style="font-size: 15px; font-weight: 700; color: #475569; display: block; font-family: 'Inter', sans-serif;">${formatDisplayNumber(initialLineVal.last)}</span>
+                  <span style="font-size: 11px; font-weight: 600; color: #64748b; display: block;" data-translate="lbl_total_exp">${t("lbl_total_exp")}</span>
+                  <span id="total-exp-value" style="font-size: 15px; font-weight: 700; color: #475569; display: block; font-family: 'Inter', sans-serif;">${formatDisplayNumber(initialLineVal.total)}</span>
                 </div>
               </div>
               <!-- Right side canvas -->
@@ -530,12 +523,9 @@ export function renderMainDashboard(container) {
   if (lineYearSelect) {
     lineYearSelect.onchange = (e) => {
       state.dashboard.lineYear = e.target.value;
-      // Update year label & stats
-      const currentYearText = state.language === "bn" ? convertDigitsToBengali(state.dashboard.lineYear) : state.dashboard.lineYear;
-      document.getElementById("badge-year").innerText = currentYearText;
       const dataVal = LINE_MOCK_DATA[state.dashboard.lineYear][state.dashboard.lineGrade];
+      document.getElementById("total-alt-value").innerText = formatDisplayNumber(dataVal.alt);
       document.getElementById("total-exp-value").innerText = formatDisplayNumber(dataVal.total);
-      document.getElementById("last-month-value").innerText = formatDisplayNumber(dataVal.last);
       initMainDashboardCharts();
     };
   }
@@ -544,11 +534,9 @@ export function renderMainDashboard(container) {
   if (lineGradeSelect) {
     lineGradeSelect.onchange = (e) => {
       state.dashboard.lineGrade = e.target.value;
-      // Update grade label & stats
-      document.getElementById("badge-grade").innerText = getGradeLabel(state.dashboard.lineGrade);
       const dataVal = LINE_MOCK_DATA[state.dashboard.lineYear][state.dashboard.lineGrade];
+      document.getElementById("total-alt-value").innerText = formatDisplayNumber(dataVal.alt);
       document.getElementById("total-exp-value").innerText = formatDisplayNumber(dataVal.total);
-      document.getElementById("last-month-value").innerText = formatDisplayNumber(dataVal.last);
       initMainDashboardCharts();
     };
   }
