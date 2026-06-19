@@ -2415,7 +2415,7 @@ body.modal-open {
   color: #334155;
   font-weight: 500;
   position: relative;
-  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.2s ease, border-color 0.2s ease, font-weight 0.2s ease, color 0.2s ease;
+  transition: background-color 0.2s ease, border-color 0.2s ease, font-weight 0.2s ease, color 0.2s ease;
 }
 
 /* Soft alternating pastel row stripes */
@@ -2511,7 +2511,7 @@ body.modal-open {
 .pol-state-table td {
   border: 1px solid rgba(75, 127, 204, 0.18) !important;
   position: relative;
-  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.2s ease, border-color 0.2s ease, font-weight 0.2s ease, color 0.2s ease;
+  transition: background-color 0.2s ease, border-color 0.2s ease, font-weight 0.2s ease, color 0.2s ease;
 }
 
 /* Global Table Header and Left-Header Bolding Highlight */
@@ -2522,13 +2522,23 @@ body.modal-open {
   text-shadow: 0 0 0.5px currentColor;
 }
 
-/* Global Table Cell Hover Pop-Out (No Bolding / No Layout Shifts) */
-.dashboard-table td.cell-active-focus,
-.pol-state-table td.cell-active-focus {
-  background: rgba(255, 255, 255, 0.95) !important;
-  border-color: rgba(75, 127, 204, 0.4) !important;
-  transform: scale(1.08);
-  box-shadow: 0 6px 16px rgba(75, 127, 204, 0.16) !important;
-  z-index: 10;
+/* Global Table Cell Hover text wrapper */
+.cell-text-wrapper {
+  display: inline-block;
+  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), text-shadow 0.2s ease, color 0.2s ease;
+  transform-origin: center;
+}
+
+/* Float text up and pop-out on cell focus */
+.cell-text-active-focus {
+  transform: translateY(-2px) scale(1.08);
+  text-shadow: 0 4px 8px rgba(75, 127, 204, 0.16);
   color: #111827 !important;
+}
+
+/* Style for cell container (no transform/scale, so no layout shift or box size change) */
+.td-hovered-focus {
+  background: rgba(255, 255, 255, 0.95) !important;
+  border-color: rgba(75, 127, 204, 0.45) !important;
+  box-shadow: inset 0 0 4px rgba(75, 127, 204, 0.08) !important;
 }

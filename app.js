@@ -2158,7 +2158,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
   });
 
-  // --- Global Table Cell Hover Interactions (Header Bolding & Cell Pop-Out) ---
+  // --- Global Table Cell Hover Interactions (Header Bolding & Cell Text Float) ---
   document.addEventListener("mouseover", (e) => {
     const td = e.target.closest(".dashboard-table tbody td, .pol-state-table tbody td");
     if (!td) return;
@@ -2182,8 +2182,18 @@ document.addEventListener("DOMContentLoaded", async () => {
       topHeader.classList.add("header-highlight");
     }
     
-    // 3. Scale and pop-out the cell itself
-    td.classList.add("cell-active-focus");
+    // 3. Make the text inside float up and animate forward
+    let wrapper = td.querySelector(".cell-text-wrapper");
+    if (!wrapper) {
+      wrapper = document.createElement("span");
+      wrapper.className = "cell-text-wrapper";
+      wrapper.innerHTML = td.innerHTML;
+      td.innerHTML = "";
+      td.appendChild(wrapper);
+    }
+    
+    wrapper.classList.add("cell-text-active-focus");
+    td.classList.add("td-hovered-focus");
   });
 
   document.addEventListener("mouseout", (e) => {
@@ -2208,7 +2218,11 @@ document.addEventListener("DOMContentLoaded", async () => {
       topHeader.classList.remove("header-highlight");
     }
     
-    td.classList.remove("cell-active-focus");
+    const wrapper = td.querySelector(".cell-text-wrapper");
+    if (wrapper) {
+      wrapper.classList.remove("cell-text-active-focus");
+    }
+    td.classList.remove("td-hovered-focus");
   });
 
   window.addEventListener("resize", () => updateNavIndicator(true));
