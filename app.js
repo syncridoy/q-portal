@@ -2193,7 +2193,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
     
     wrapper.classList.add("cell-text-active-focus");
-    td.classList.add("td-hovered-focus");
   });
 
   document.addEventListener("mouseout", (e) => {
@@ -2222,7 +2221,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (wrapper) {
       wrapper.classList.remove("cell-text-active-focus");
     }
-    td.classList.remove("td-hovered-focus");
   });
 
   window.addEventListener("resize", () => updateNavIndicator(true));

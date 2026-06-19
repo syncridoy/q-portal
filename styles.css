@@ -2536,9 +2536,3 @@ body.modal-open {
   color: #111827 !important;
 }
 
-/* Style for cell container (no transform/scale, so no layout shift or box size change) */
-.td-hovered-focus {
-  background: rgba(255, 255, 255, 0.95) !important;
-  border-color: rgba(75, 127, 204, 0.45) !important;
-  box-shadow: inset 0 0 4px rgba(75, 127, 204, 0.08) !important;
-}
