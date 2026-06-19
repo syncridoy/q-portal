@@ -101,12 +101,107 @@ export function initMainDashboardCharts() {
     const lineCtx = lineCanvas.getContext("2d");
     const lineVal = state.dashboard.lineChartData || { altData: [], data: [], alt: 0, total: 0 };
 
-    const gradeYConfig = {
-      "Diesel": { min: 80000, max: 130000, stepSize: 10000 },
-      "MS-74": { min: 30000, max: 80000, stepSize: 10000 },
-      "100 Octane": { min: 10000, max: 60000, stepSize: 10000 }
-    };
-    const currentGradeConfig = gradeYConfig[state.dashboard.lineGrade || "Diesel"] || gradeYConfig["Diesel"];
+    // Calculate dynamic Y-axis scaling based on min/max of active dataset
+    const allVals = [];
+    if (lineVal.altData && Array.isArray(lineVal.altData)) {
+      lineVal.altData.forEach(v => { if (v !== null && v !== undefined) allVals.push(Number(v)); });
+    }
+    if (lineVal.data && Array.isArray(lineVal.data)) {
+      lineVal.data.forEach(v => { if (v !== null && v !== undefined) allVals.push(Number(v)); });
+    }
+
+    let yConfig = { min: 0, max: 100, stepSize: 20 };
+    if (allVals.length > 0) {
+      const dataMin = Math.min(...allVals);
+      const dataMax = Math.max(...allVals);
+      
+      const r = dataMax - dataMin;
+      if (r <= 0) {
+        const val = dataMin > 0 ? dataMin : 10000;
+        const power = Math.floor(Math.log10(val / 4));
+        const step = Math.pow(10, power) || 2000;
+        const minVal = Math.max(0, val - 2 * step);
+        yConfig = { min: minVal, max: minVal + 5 * step, stepSize: step };
+      } else {
+        const ratioWeights = {
+          1.0: 1.0,
+          2.0: 1.0,
+          5.0: 1.0,
+          10.0: 1.0,
+          2.5: 0.8,
+          1.5: 0.6,
+          3.0: 0.5,
+          4.0: 0.5,
+          6.0: 0.4,
+          8.0: 0.4,
+          1.2: 0.3
+        };
+        const power = Math.floor(Math.log10(r / 4));
+        const candidates = [];
+        const cleanRatios = Object.keys(ratioWeights).map(Number);
+        for (const p of [power - 1, power, power + 1]) {
+          for (const ratio of cleanRatios) {
+            const val = Math.round(ratio * Math.pow(10, p) * 1e6) / 1e6;
+            if (!candidates.includes(val)) {
+              candidates.push(val);
+            }
+          }
+        }
+        candidates.sort((a, b) => a - b);
+
+        let best = null;
+        for (const c of candidates) {
+          const lower = Math.max(dataMin - c, dataMax - 5 * c);
+          const upper = Math.min(dataMin, dataMax - 4 * c);
+          if (lower <= upper) {
+            let startVal = null;
+            // Try multiples of c
+            const m = Math.ceil(lower / c) * c;
+            if (m >= lower && m <= upper) {
+              startVal = m;
+            }
+            // Try multiples of c / 2
+            if (startVal === null) {
+              const h = c / 2;
+              const mh = Math.ceil(lower / h) * h;
+              if (mh >= lower && mh <= upper) startVal = mh;
+            }
+            // Try multiples of c / 5
+            if (startVal === null) {
+              const f = c / 5;
+              const mf = Math.ceil(lower / f) * f;
+              if (mf >= lower && mf <= upper) startVal = mf;
+            }
+            if (startVal === null) {
+              startVal = lower;
+            }
+            
+            if (dataMin >= 0 && startVal < 0) {
+              startVal = 0;
+            }
+
+            const target = r / 4;
+            const dist = Math.abs(c - target) / target;
+            const pVal = Math.floor(Math.log10(c));
+            const ratioVal = Math.round((c / Math.pow(10, pVal)) * 100) / 100;
+            const weight = ratioWeights[ratioVal] || 0.1;
+            
+            let level = 1;
+            if (Math.abs(startVal / c - Math.round(startVal / c)) < 1e-9) level = 4;
+            else if (Math.abs(startVal / (c / 2) - Math.round(startVal / (c / 2))) < 1e-9) level = 3;
+            else if (Math.abs(startVal / (c / 5) - Math.round(startVal / (c / 5))) < 1e-9) level = 2;
+
+            const score = level + weight - 0.1 * dist;
+            if (best === null || score > best.score) {
+              best = { min: startVal, max: startVal + 5 * c, stepSize: c, score: score };
+            }
+          }
+        }
+        if (best !== null) {
+          yConfig = { min: best.min, max: best.max, stepSize: best.stepSize };
+        }
+      }
+    }
 
     const gradientAlt = lineCtx.createLinearGradient(0, 0, 0, 140);
     gradientAlt.addColorStop(0, 'rgba(59, 130, 246, 0.12)');
@@ -202,14 +297,14 @@ export function initMainDashboardCharts() {
             }
           },
           y: {
-            min: currentGradeConfig.min,
-            max: currentGradeConfig.max,
+            min: yConfig.min,
+            max: yConfig.max,
             grid: {
               color: 'rgba(226, 232, 240, 0.4)',
               drawBorder: false
             },
             ticks: {
-              stepSize: currentGradeConfig.stepSize,
+              stepSize: yConfig.stepSize,
               maxTicksLimit: 6,
               font: {
                 family: "'Inter', sans-serif",
