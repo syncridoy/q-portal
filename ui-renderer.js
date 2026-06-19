@@ -21,6 +21,23 @@ function impersonateRole(...args) {
   }
 }
 
+export function getDisplayNameForUnit(unitName, year) {
+  const activeYear = year || (state.dashboard ? state.dashboard.lineYear : "2025-26");
+  const isBn = state.language === "bn";
+  if (unitName === "5 BIR (Sp Bn)" || unitName === "19 E Bengal (Sp Bn)") {
+    if (activeYear === "2026-27") {
+      if (unitName === "5 BIR (Sp Bn)") {
+        return isBn ? "৫ বীর (সাপোর্ট ব্যাটেলিয়ন)" : "5 BIR (Sp Bn)";
+      } else {
+        return isBn ? "১৯ ই বেঙ্গল (সাপোর্ট ব্যাটেলিয়ন)" : "19 E Bengal (Sp Bn)";
+      }
+    } else {
+      return isBn ? "১৯ ই বেঙ্গল (সাপোর্ট ব্যাটেলিয়ন)" : "19 E Bengal (Sp Bn)";
+    }
+  }
+  return unitName;
+}
+
 
 export function updateNavIndicator(noTransition = false) {
   const container = document.getElementById("header-nav-tabs");
@@ -739,7 +756,7 @@ export function renderHierarchyTree() {
       <ul class="tree-list" style="margin-left: 12px; display: block;">
         ${units.map(u => `
           <li class="tree-item-leaf" style="padding: 2px 0; color: var(--text-muted); cursor: pointer;" onclick="selectUnitFromTree('${u}')">
-            📄 ${u}
+            📄 ${getDisplayNameForUnit(u)}
           </li>
         `).join("")}
       </ul>
@@ -792,7 +809,7 @@ export function renderUnitsManagementTable() {
     const hasEditPermission = checkWriteAccess(unit);
 
     row.innerHTML = `
-      <td><strong>${unit}</strong></td>
+      <td><strong>${getDisplayNameForUnit(unit)}</strong></td>
       <td>${stats.vAvail} / ${stats.vTotal}</td>
       <td>${stats.pol} L</td>
       <td>${stats.cook + stats.waiter}</td>
@@ -827,7 +844,7 @@ export function selectUnitForEditing(unitName) {
   const stats = state.logisticsDB[unitName];
   if (!stats) return;
 
-  document.getElementById("editor-active-unit-label").innerText = `${state.language === "en" ? "Target Unit: " : "টার্গেট ইউনিট: "} ${unitName}`;
+  document.getElementById("editor-active-unit-label").innerText = `${state.language === "en" ? "Target Unit: " : "টার্গেট ইউনিট: "} ${getDisplayNameForUnit(unitName)}`;
 
   document.getElementById("form-vehicles-avail").value = stats.vAvail;
   document.getElementById("form-vehicles-total").value = stats.vTotal;
@@ -955,7 +972,7 @@ export function renderDirectoryCards() {
         <span class="contact-rank">${u.rank}</span>
         <h4>${u.fullName}</h4>
         <span class="contact-ba">${u.baNo}</span>
-        <div class="contact-unit">🏢 ${targetUnit}</div>
+        <div class="contact-unit">🏢 ${getDisplayNameForUnit(targetUnit)}</div>
         <div style="font-size:11px; margin-top:2px; font-weight:600; color:var(--primary);">📞 ${u.mobile}</div>
       </div>
       <button class="contact-call-btn" onclick="simulateCall('${u.fullName}', '${u.mobile}')" title="Call Contact">
@@ -982,7 +999,7 @@ export function populateDirectoryUnitFilters() {
   uniqueScopes.forEach(sc => {
     const opt = document.createElement("option");
     opt.value = sc;
-    opt.innerText = sc;
+    opt.innerText = getDisplayNameForUnit(sc);
     select.appendChild(opt);
   });
 
@@ -1011,7 +1028,7 @@ export function renderRoleImpersonatorList() {
     btn.innerHTML = `
       <div>
         <strong>${u.fullName}</strong><br>
-        <span style="font-size:10px; color: var(--text-muted)">Scope: ${scopeText}</span>
+        <span style="font-size:10px; color: var(--text-muted)">Scope: ${getDisplayNameForUnit(scopeText)}</span>
       </div>
       <span class="role-badge">Role-${u.role}</span>
     `;

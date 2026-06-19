@@ -12,7 +12,7 @@ BRIGADES = {
   "HQ 88 Inf Bde": ["2 E Bengal", "6 E Bengal"],
   "HQ 105 Inf Bde": ["14 BIR", "Adhoc 34 E Bengal", "37 BIR"],
   "HQ 55 Inf Div (Direct)": [
-    "9 Bengal Lancers", "3 Engr Bn", "2 Sig Bn", "5 BIR (Div Sp Bn)", 
+    "9 Bengal Lancers", "3 Engr Bn", "2 Sig Bn", "5 BIR (Sp Bn)", 
     "31 ST Bn", "41 Fd Amb", "71 Fd Amb", "505 DOC", 
     "117 Fd Wksp Coy EME", "119 Fd Wksp Coy EME", "145 Fd Wksp Coy EME", 
     "55 MP Unit", "55 FIU", "HQ Coy 55 Inf Div"
@@ -59,8 +59,8 @@ IMMUTABLE_USER_REGISTRY = [
   { "username": "3_engr_bn", "assigned": "3 Engr Bn", "role": 1, "appointment": "Q Clk", "access": "Editor" },
   { "username": "qm_2_sig_bn", "assigned": "2 Sig Bn", "role": 2, "appointment": "QM", "access": "Viewer" },
   { "username": "2_sig_bn", "assigned": "2 Sig Bn", "role": 1, "appointment": "Q Clk", "access": "Editor" },
-  { "username": "qm_5_bir", "assigned": "5 BIR (Div Sp Bn)", "role": 2, "appointment": "QM", "access": "Viewer" },
-  { "username": "5_bir", "assigned": "5 BIR (Div Sp Bn)", "role": 1, "appointment": "Q Clk", "access": "Editor" },
+  { "username": "qm_5_bir", "assigned": "5 BIR (Sp Bn)", "role": 2, "appointment": "QM", "access": "Viewer" },
+  { "username": "5_bir", "assigned": "5 BIR (Sp Bn)", "role": 1, "appointment": "Q Clk", "access": "Editor" },
   { "username": "qm_31_st_bn", "assigned": "31 ST Bn", "role": 2, "appointment": "QM", "access": "Viewer" },
   { "username": "31_st_bn", "assigned": "31 ST Bn", "role": 1, "appointment": "Q Clk", "access": "Editor" },
   { "username": "qm_41_fd_amb", "assigned": "41 Fd Amb", "role": 2, "appointment": "QM", "access": "Viewer" },
@@ -98,7 +98,7 @@ INITIAL_LOGISTICS = {
   "9 Bengal Lancers": { "vAvail": 16, "vTotal": 20, "pol": 8500, "cook": 6, "waiter": 12, "strength": 310 },
   "3 Engr Bn": { "vAvail": 22, "vTotal": 26, "pol": 9200, "cook": 5, "waiter": 10, "strength": 280 },
   "2 Sig Bn": { "vAvail": 18, "vTotal": 22, "pol": 7500, "cook": 4, "waiter": 8, "strength": 250 },
-  "5 BIR (Div Sp Bn)": { "vAvail": 14, "vTotal": 16, "pol": 6200, "cook": 6, "waiter": 11, "strength": 490 },
+  "5 BIR (Sp Bn)": { "vAvail": 14, "vTotal": 16, "pol": 6200, "cook": 6, "waiter": 11, "strength": 490 },
   "31 ST Bn": { "vAvail": 45, "vTotal": 50, "pol": 24000, "cook": 8, "waiter": 15, "strength": 350 },
   "41 Fd Amb": { "vAvail": 12, "vTotal": 14, "pol": 3800, "cook": 3, "waiter": 6, "strength": 120 },
   "71 Fd Amb": { "vAvail": 10, "vTotal": 12, "pol": 3500, "cook": 3, "waiter": 6, "strength": 110 },
@@ -443,7 +443,7 @@ ms74_alt_2024_25 = {
     '9 Bengal Lancers': [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 150.0, 0.0, 0.0, 0.0, 0.0, 0.0],
     '3 Engr Bn': [185.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 200.0],
     '2 Sig Bn': [249.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-    '5 BIR (Div Sp Bn)': [106.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+    '19 E Bengal (Sp Bn)': [106.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
     '31 ST Bn': [131.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
     '41 Fd Amb': [93.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
     '71 Fd Amb': [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
@@ -464,7 +464,7 @@ octane100_alt_2024_25 = {
     '9 Bengal Lancers': [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
     '3 Engr Bn': [0.0, 600.0, 800.0, 750.0, 3000.0, 0.0, 0.0, 0.0, 300.0, 0.0, 1000.0, 5500.0],
     '2 Sig Bn': [200.0, 400.0, 0.0, 200.0, 0.0, 0.0, 0.0, 200.0, 0.0, 0.0, 0.0, 0.0],
-    '5 BIR (Div Sp Bn)': [300.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+    '19 E Bengal (Sp Bn)': [300.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
     '31 ST Bn': [300.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 551.0, 0.0],
     '41 Fd Amb': [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
     '71 Fd Amb': [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
@@ -485,7 +485,7 @@ diesel_alt_2024_25 = {
     '9 Bengal Lancers': [4500.0, 4000.0, 4000.0, 5500.0, 2000.0, 20000.0, 5000.0, 0.0, 3500.0, 2500.0, 4000.0, 7000.0],
     '3 Engr Bn': [11000.0, 2000.0, 600.0, 1500.0, 35000.0, 6000.0, 8500.0, 11000.0, 8500.0, 5000.0, 14000.0, 11500.0],
     '2 Sig Bn': [5966.0, 8000.0, 6500.0, 7000.0, 7000.0, 12000.0, 8500.0, 5000.0, 7500.0, 6000.0, 6000.0, 7000.0],
-    '5 BIR (Div Sp Bn)': [7914.0, 8000.0, 4500.0, 12500.0, 9000.0, 23000.0, 13500.0, 18000.0, 10500.0, 12500.0, 12000.0, 14000.0],
+    '19 E Bengal (Sp Bn)': [7914.0, 8000.0, 4500.0, 12500.0, 9000.0, 23000.0, 13500.0, 18000.0, 10500.0, 12500.0, 12000.0, 14000.0],
     '31 ST Bn': [8017.0, 8000.0, 5000.0, 7500.0, 3000.0, 13000.0, 12000.0, 0.0, 11000.0, 0.0, 6000.0, 12500.0],
     '41 Fd Amb': [1300.0, 2250.0, 1500.0, 1500.0, 1000.0, 1500.0, 1250.0, 1000.0, 2200.0, 1000.0, 750.0, 2500.0],
     '71 Fd Amb': [2660.0, 1000.0, 1500.0, 2000.0, 1000.0, 750.0, 1500.0, 1500.0, 1500.0, 2250.0, 1000.0, 2500.0],
@@ -503,7 +503,8 @@ def seed_pol_data(conn):
     cursor = conn.cursor()
     months = ['Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun']
     unit_map = {
-        '19 E Bengal (Div Sp Bn)': '5 BIR (Div Sp Bn)'
+        '19 E Bengal (Div Sp Bn)': '19 E Bengal (Sp Bn)',
+        '5 BIR (Div Sp Bn)': '19 E Bengal (Sp Bn)'
     }
     
     # 1. FY 2024-25 Exp
@@ -661,6 +662,9 @@ def get_pol_summary():
     elif scope == "brigade":
         # Sum both the brigade HQ itself and its subordinate units
         units_to_query = [assigned] + BRIGADES.get(assigned, [])
+        
+    if year in ['2024-25', '2025-26']:
+        units_to_query = [('19 E Bengal (Sp Bn)' if u == '5 BIR (Sp Bn)' else u) for u in units_to_query]
         
     alt_data = []
     exp_data = []

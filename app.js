@@ -24,7 +24,8 @@ import {
   renderDirectoryCards,
   populateDirectoryUnitFilters,
   simulateCall,
-  renderRoleImpersonatorList
+  renderRoleImpersonatorList,
+  getDisplayNameForUnit
 } from './ui-renderer.js';
 
 // Define constants that need to be globally accessible by other modules in this scope
@@ -72,7 +73,7 @@ export function initDashboard(preserveTab = false) {
   
   const brandNameEl = document.getElementById("header-brand-name");
   if (brandNameEl) {
-    brandNameEl.innerText = brandName;
+    brandNameEl.innerText = getDisplayNameForUnit(brandName);
   }
 
   // Set profile info
@@ -89,8 +90,23 @@ export function initDashboard(preserveTab = false) {
   const rankEl = document.getElementById("header-user-rank");
   if (rankEl) rankEl.innerText = toTitleCase(state.currentUser.rank);
 
+  let formattedFullName = state.currentUser.fullName || "";
+  const activeYear = state.dashboard ? state.dashboard.lineYear : "2025-26";
+  if (activeYear !== "2026-27") {
+    formattedFullName = formattedFullName
+      .replace("5 BIR (Sp Bn)", "19 E Bengal (Sp Bn)")
+      .replace("৫ বীর (সাপোর্ট ব্যাটেলিয়ন)", "১৯ ই বেঙ্গল (সাপোর্ট ব্যাটেলিয়ন)")
+      .replace("5 BIR", "19 E Bengal")
+      .replace("৫ বীর", "১৯ ই বেঙ্গল");
+  } else {
+    if (state.language === "bn") {
+      formattedFullName = formattedFullName
+        .replace("5 BIR (Sp Bn)", "৫ বীর (সাপোর্ট ব্যাটেলিয়ন)")
+        .replace("5 BIR", "৫ বীর");
+    }
+  }
   const nameEl = document.getElementById("header-user-name");
-  if (nameEl) nameEl.innerText = state.currentUser.fullName;
+  if (nameEl) nameEl.innerText = formattedFullName;
 
   // Normalize appointment to standard mixed-case/title-case format
   const apptEl = document.getElementById("header-user-appt");
