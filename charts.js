@@ -149,51 +149,80 @@ export function initMainDashboardCharts() {
         }
         candidates.sort((a, b) => a - b);
 
+        const getCleanlinessScore = (val) => {
+          let score = 0;
+          if (Math.abs(val / 10000 - Math.round(val / 10000)) < 1e-9) score += 1.0;
+          else if (Math.abs(val / 5000 - Math.round(val / 5000)) < 1e-9) score += 0.6;
+          else if (Math.abs(val / 2000 - Math.round(val / 2000)) < 1e-9) score += 0.3;
+          else if (Math.abs(val / 1000 - Math.round(val / 1000)) < 1e-9) score += 0.1;
+          return score;
+        };
+
         let best = null;
         for (const c of candidates) {
           const lower = Math.max(dataMin - c, dataMax - 5 * c);
           const upper = Math.min(dataMin, dataMax - 4 * c);
           if (lower <= upper) {
-            let startVal = null;
-            // Try multiples of c
-            const m = Math.ceil(lower / c) * c;
-            if (m >= lower && m <= upper) {
-              startVal = m;
-            }
-            // Try multiples of c / 2
-            if (startVal === null) {
-              const h = c / 2;
-              const mh = Math.ceil(lower / h) * h;
-              if (mh >= lower && mh <= upper) startVal = mh;
-            }
-            // Try multiples of c / 5
-            if (startVal === null) {
-              const f = c / 5;
-              const mf = Math.ceil(lower / f) * f;
-              if (mf >= lower && mf <= upper) startVal = mf;
-            }
-            if (startVal === null) {
-              startVal = lower;
+            const stepDiv = c / 10;
+            const startK = Math.ceil(lower / stepDiv);
+            const endK = Math.floor(upper / stepDiv);
+            
+            const localCandidates = [lower, upper];
+            if (startK <= endK) {
+              for (let k = startK; k <= endK; k++) {
+                localCandidates.push(k * stepDiv);
+              }
             }
             
-            if (dataMin >= 0 && startVal < 0) {
-              startVal = 0;
-            }
-
-            const target = r / 4;
-            const dist = Math.abs(c - target) / target;
-            const pVal = Math.floor(Math.log10(c));
-            const ratioVal = Math.round((c / Math.pow(10, pVal)) * 100) / 100;
-            const weight = ratioWeights[ratioVal] || 0.1;
+            const uniqueCandidates = Array.from(new Set(localCandidates));
             
-            let level = 1;
-            if (Math.abs(startVal / c - Math.round(startVal / c)) < 1e-9) level = 4;
-            else if (Math.abs(startVal / (c / 2) - Math.round(startVal / (c / 2))) < 1e-9) level = 3;
-            else if (Math.abs(startVal / (c / 5) - Math.round(startVal / (c / 5))) < 1e-9) level = 2;
-
-            const score = level + weight - 0.1 * dist;
-            if (best === null || score > best.score) {
-              best = { min: startVal, max: startVal + 5 * c, stepSize: c, score: score };
+            let bestStart = null;
+            let bestScore = -1;
+            
+            for (const x of uniqueCandidates) {
+              if (x < lower || x > upper) continue;
+              if (dataMin >= 0 && x < 0) continue;
+              
+              let score = 0;
+              // Check relationship to c for min tick x
+              if (Math.abs(x / c - Math.round(x / c)) < 1e-9) score += 1.5;
+              else if (Math.abs(x / (c / 2) - Math.round(x / (c / 2))) < 1e-9) score += 0.8;
+              else if (Math.abs(x / (c / 5) - Math.round(x / (c / 5))) < 1e-9) score += 0.6;
+              else if (Math.abs(x / (c / 10) - Math.round(x / (c / 10))) < 1e-9) score += 0.3;
+              
+              // Check relationship to c for max tick y = x + 5 * c
+              const y = x + 5 * c;
+              if (Math.abs(y / c - Math.round(y / c)) < 1e-9) score += 1.5;
+              else if (Math.abs(y / (c / 2) - Math.round(y / (c / 2))) < 1e-9) score += 0.8;
+              else if (Math.abs(y / (c / 5) - Math.round(y / (c / 5))) < 1e-9) score += 0.6;
+              else if (Math.abs(y / (c / 10) - Math.round(y / (c / 10))) < 1e-9) score += 0.3;
+              
+              // Add number cleanliness scores
+              score += getCleanlinessScore(x);
+              score += getCleanlinessScore(y);
+              
+              // Prefer values closer to lower bound
+              const distFactor = 0.1 * (1.0 - (x - lower) / (upper - lower + 1e-9));
+              score += distFactor;
+              
+              if (score > bestScore) {
+                bestScore = score;
+                bestStart = x;
+              }
+            }
+            
+            if (bestStart !== null) {
+              const startVal = bestStart;
+              const target = r / 4;
+              const dist = Math.abs(c - target) / target;
+              const pVal = Math.floor(Math.log10(c));
+              const ratioVal = Math.round((c / Math.pow(10, pVal)) * 100) / 100;
+              const cWeight = ratioWeights[ratioVal] || 0.1;
+              const totalScore = bestScore + cWeight - 0.1 * dist;
+              
+              if (best === null || totalScore > best.totalScore) {
+                best = { min: startVal, max: startVal + 5 * c, stepSize: c, totalScore: totalScore };
+              }
             }
           }
         }
@@ -299,13 +328,22 @@ export function initMainDashboardCharts() {
           y: {
             min: yConfig.min,
             max: yConfig.max,
+            afterBuildTicks: function(scale) {
+              scale.ticks = [
+                { value: yConfig.min },
+                { value: yConfig.min + yConfig.stepSize },
+                { value: yConfig.min + 2 * yConfig.stepSize },
+                { value: yConfig.min + 3 * yConfig.stepSize },
+                { value: yConfig.min + 4 * yConfig.stepSize },
+                { value: yConfig.min + 5 * yConfig.stepSize }
+              ];
+            },
             grid: {
               color: 'rgba(226, 232, 240, 0.4)',
               drawBorder: false
             },
             ticks: {
               stepSize: yConfig.stepSize,
-              maxTicksLimit: 6,
               font: {
                 family: "'Inter', sans-serif",
                 size: 8,
