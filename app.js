@@ -50,6 +50,10 @@ export async function initDatabases() {
 export function initDashboard(preserveTab = false) {
   if (!state.currentUser) return;
 
+  if (state.dashboard) {
+    state.dashboard.lineChartData = null;
+  }
+
   // Reset active tab key when initializing dashboard unless preserveTab is set
   if (!preserveTab) {
     const role = state.currentUser.role;

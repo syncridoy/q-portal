@@ -155,6 +155,19 @@ def init_db():
         )
     ''')
     
+    # Create pol_monthly_records table
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS pol_monthly_records (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            unit_name TEXT NOT NULL,
+            fiscal_year TEXT NOT NULL,
+            month TEXT NOT NULL,
+            pol_grade TEXT NOT NULL,
+            allocation REAL,
+            expenditure REAL
+        )
+    ''')
+    
     conn.commit()
     
     # Seed users if empty
@@ -166,6 +179,11 @@ def init_db():
     cursor.execute("SELECT count(*) FROM logistics")
     if cursor.fetchone()[0] == 0:
         seed_logistics(conn)
+        
+    # Seed pol_monthly_records if empty
+    cursor.execute("SELECT count(*) FROM pol_monthly_records")
+    if cursor.fetchone()[0] == 0:
+        seed_pol_data(conn)
         
     conn.close()
 
@@ -401,6 +419,285 @@ def reset_database():
         os.remove(DB_FILE)
     init_db()
     return jsonify({"success": True})
+
+# --- Real POL Data Ingestion and Seeding ---
+LINE_MOCK_DATA = {
+    "2023-24": {
+        "Diesel": { "total": 1029000, "last": 85000, "alt": 1060000, "data": [85000, 80000, 88000, 85000, 82000, 85000, 90000, 94000, 88000, 86000, 84000, 92000], "altData": [90000, 82000, 84000, 89000, 85000, 82000, 93000, 90000, 91000, 84000, 88000, 102000] },
+        "MS-74": { "total": 399000, "last": 35000, "alt": 413000, "data": [32000, 30000, 34000, 33000, 31000, 32000, 35000, 37000, 34000, 33000, 32000, 36000], "altData": [34000, 30000, 32000, 35000, 33000, 31000, 38000, 35000, 36000, 31000, 34000, 44000] },
+        "100 Octane": { "total": 174000, "last": 15000, "alt": 180000, "data": [14000, 13000, 15000, 14000, 13000, 14000, 16000, 17000, 15000, 14000, 13000, 16000], "altData": [15000, 12000, 14000, 16000, 15000, 13000, 17000, 15000, 16000, 13000, 15000, 19000] }
+    },
+    "2026-27": {
+        "Diesel": { "total": 1200000, "last": 95000, "alt": 1220000, "data": [85000, 83000, 94000, 92000, 90000, 93000, 98000, 102000, 96000, 94000, 92000, 99000], "altData": [90000, 80000, 90000, 95000, 92000, 89000, 100000, 98000, 99000, 90000, 95000, 112000] },
+        "MS-74": { "total": 500000, "last": 42000, "alt": 510000, "data": [36000, 35000, 40000, 39000, 37000, 38000, 42000, 44000, 40000, 39000, 38000, 43000], "altData": [40000, 33000, 38000, 41000, 36000, 40000, 44000, 42000, 43000, 38000, 40000, 75000] },
+        "100 Octane": { "total": 220000, "last": 19000, "alt": 230000, "data": [17000, 16000, 18000, 17000, 16000, 17000, 19000, 20000, 18000, 17000, 16000, 19000], "altData": [19000, 15000, 17000, 19000, 15000, 18000, 20000, 18000, 19000, 16000, 17000, 27000] }
+    }
+}
+
+# Real 2024-25 Allocation Data from PDF OCR
+ms74_alt_2024_25 = {
+    'HQ 55 Arty Bde': [619.0, 0.0, 200.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+    'HQ 21 Inf Bde': [301.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+    'HQ 88 Inf Bde': [762.0, 0.0, 0.0, 0.0, 0.0, 100.0, 0.0, 0.0, 0.0, 0.0, 100.0, 0.0],
+    'HQ 105 Inf Bde': [619.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+    '9 Bengal Lancers': [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 150.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+    '3 Engr Bn': [185.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 200.0],
+    '2 Sig Bn': [249.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+    '5 BIR (Div Sp Bn)': [106.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+    '31 ST Bn': [131.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+    '41 Fd Amb': [93.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+    '71 Fd Amb': [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+    '505 DOC': [161.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+    '117 Fd Wksp Coy EME': [109.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+    '119 Fd Wksp Coy EME': [141.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+    '145 Fd Wksp Coy EME': [80.0, 0.0, 0.0, 0.0, 0.0, 0.0, 95.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+    '55 MP Unit': [198.0, 0.0, 0.0, 200.0, 0.0, 0.0, 0.0, 200.0, 0.0, 0.0, 0.0, 200.0],
+    '55 FIU': [107.0, 400.0, 0.0, 0.0, 0.0, 200.0, 0.0, 0.0, 0.0, 0.0, 50.0, 150.0],
+    'HQ Coy 55 Inf Div': [59.0, 200.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 50.0]
+}
+
+octane100_alt_2024_25 = {
+    'HQ 55 Arty Bde': [500.0, 500.0, 0.0, 300.0, 500.0, 0.0, 0.0, 0.0, 0.0, 0.0, 666.0, 200.0],
+    'HQ 21 Inf Bde': [500.0, 0.0, 0.0, 0.0, 200.0, 0.0, 0.0, 150.0, 0.0, 50.0, 195.0, 1800.0],
+    'HQ 88 Inf Bde': [1000.0, 0.0, 0.0, 700.0, 700.0, 0.0, 0.0, 0.0, 100.0, 0.0, 691.0, 1700.0],
+    'HQ 105 Inf Bde': [500.0, 0.0, 0.0, 500.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 501.0, 1700.0],
+    '9 Bengal Lancers': [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+    '3 Engr Bn': [0.0, 600.0, 800.0, 750.0, 3000.0, 0.0, 0.0, 0.0, 300.0, 0.0, 1000.0, 5500.0],
+    '2 Sig Bn': [200.0, 400.0, 0.0, 200.0, 0.0, 0.0, 0.0, 200.0, 0.0, 0.0, 0.0, 0.0],
+    '5 BIR (Div Sp Bn)': [300.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+    '31 ST Bn': [300.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 551.0, 0.0],
+    '41 Fd Amb': [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+    '71 Fd Amb': [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+    '505 DOC': [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+    '117 Fd Wksp Coy EME': [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+    '119 Fd Wksp Coy EME': [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+    '145 Fd Wksp Coy EME': [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+    '55 MP Unit': [1404.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+    '55 FIU': [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+    'HQ Coy 55 Inf Div': [1500.0, 1917.0, 0.0, 0.0, 400.0, 0.0, 0.0, 400.0, 0.0, 0.0, 773.0, 650.0]
+}
+
+diesel_alt_2024_25 = {
+    'HQ 55 Arty Bde': [16029.0, 13500.0, 23000.0, 11500.0, 13000.0, 17500.0, 17000.0, 15000.0, 11000.0, 27000.0, 17500.0, 27500.0],
+    'HQ 21 Inf Bde': [13878.0, 8500.0, 11000.0, 7500.0, 11500.0, 12000.0, 7500.0, 8750.0, 14000.0, 11500.0, 6500.0, 1500.0],
+    'HQ 88 Inf Bde': [14471.0, 9500.0, 7000.0, 10700.0, 9500.0, 13000.0, 12000.0, 9750.0, 10000.0, 6000.0, 10000.0, 11500.0],
+    'HQ 105 Inf Bde': [25798.0, 16500.0, 7500.0, 10000.0, 9000.0, 50500.0, 0.0, 5000.0, 12000.0, 18000.0, 7000.0, 15000.0],
+    '9 Bengal Lancers': [4500.0, 4000.0, 4000.0, 5500.0, 2000.0, 20000.0, 5000.0, 0.0, 3500.0, 2500.0, 4000.0, 7000.0],
+    '3 Engr Bn': [11000.0, 2000.0, 600.0, 1500.0, 35000.0, 6000.0, 8500.0, 11000.0, 8500.0, 5000.0, 14000.0, 11500.0],
+    '2 Sig Bn': [5966.0, 8000.0, 6500.0, 7000.0, 7000.0, 12000.0, 8500.0, 5000.0, 7500.0, 6000.0, 6000.0, 7000.0],
+    '5 BIR (Div Sp Bn)': [7914.0, 8000.0, 4500.0, 12500.0, 9000.0, 23000.0, 13500.0, 18000.0, 10500.0, 12500.0, 12000.0, 14000.0],
+    '31 ST Bn': [8017.0, 8000.0, 5000.0, 7500.0, 3000.0, 13000.0, 12000.0, 0.0, 11000.0, 0.0, 6000.0, 12500.0],
+    '41 Fd Amb': [1300.0, 2250.0, 1500.0, 1500.0, 1000.0, 1500.0, 1250.0, 1000.0, 2200.0, 1000.0, 750.0, 2500.0],
+    '71 Fd Amb': [2660.0, 1000.0, 1500.0, 2000.0, 1000.0, 750.0, 1500.0, 1500.0, 1500.0, 2250.0, 1000.0, 2500.0],
+    '505 DOC': [1420.0, 1000.0, 2000.0, 500.0, 1000.0, 1000.0, 1500.0, 0.0, 1200.0, 0.0, 1000.0, 2500.0],
+    '117 Fd Wksp Coy EME': [1506.0, 500.0, 1500.0, 500.0, 2000.0, 750.0, 0.0, 1000.0, 1000.0, 1000.0, 700.0, 2000.0],
+    '119 Fd Wksp Coy EME': [2031.0, 1500.0, 2000.0, 500.0, 1000.0, 0.0, 1500.0, 0.0, 1500.0, 1250.0, 1500.0, 1500.0],
+    '145 Fd Wksp Coy EME': [2540.0, 500.0, 0.0, 500.0, 3000.0, 0.0, 1500.0, 0.0, 0.0, 0.0, 1000.0, 1500.0],
+    '55 MP Unit': [4141.0, 2500.0, 2500.0, 3000.0, 2000.0, 2000.0, 2000.0, 1500.0, 3250.0, 2000.0, 2000.0, 2500.0],
+    '55 FIU': [3432.0, 1000.0, 1500.0, 500.0, 1000.0, 0.0, 1000.0, 1000.0, 0.0, 1000.0, 0.0, 2000.0],
+    'HQ Coy 55 Inf Div': [5760.0, 3000.0, 2500.0, 2000.0, 2000.0, 1500.0, 2000.0, 0.0, 0.0, 3000.0, 0.0, 1873.0]
+}
+
+def seed_pol_data(conn):
+    import openpyxl
+    cursor = conn.cursor()
+    months = ['Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun']
+    unit_map = {
+        '19 E Bengal (Div Sp Bn)': '5 BIR (Div Sp Bn)'
+    }
+    
+    # 1. FY 2024-25 Exp
+    file_1_path = 'scratch/file_1.xlsx'
+    if os.path.exists(file_1_path):
+        try:
+            wb1 = openpyxl.load_workbook(file_1_path, data_only=True)
+            for grade in ['Diesel', 'MS-74', '100 Octane']:
+                if grade in wb1.sheetnames:
+                    sheet = wb1[grade]
+                    rows = list(sheet.iter_rows(values_only=True))
+                    for r in rows[4:]:
+                        if not r or r[0] is None:
+                            continue
+                        unit = str(r[0]).strip()
+                        if "total" in unit.lower() or "grand" in unit.lower() or unit == "":
+                            continue
+                        unit = unit_map.get(unit, unit)
+                        
+                        # Find correct allocation source
+                        alt_source = None
+                        if grade == 'Diesel':
+                            alt_source = diesel_alt_2024_25
+                        elif grade == 'MS-74':
+                            alt_source = ms74_alt_2024_25
+                        elif grade == '100 Octane':
+                            alt_source = octane100_alt_2024_25
+                        
+                        for m_idx, month in enumerate(months):
+                            exp_val = r[m_idx + 1]
+                            if exp_val is None:
+                                exp_val = 0.0
+                            else:
+                                try:
+                                    exp_val = float(exp_val)
+                                except:
+                                    exp_val = 0.0
+                            
+                            alt_val = 0.0
+                            if alt_source and unit in alt_source:
+                                alt_val = alt_source[unit][m_idx]
+                            
+                            cursor.execute('''
+                                INSERT INTO pol_monthly_records (unit_name, fiscal_year, month, pol_grade, allocation, expenditure)
+                                VALUES (?, ?, ?, ?, ?, ?)
+                            ''', (unit, '2024-25', month, grade, alt_val, exp_val))
+        except Exception as e:
+            print("Failed seeding FY 2024-25:", e)
+            
+    # 2. FY 2025-26 Exp and Alt
+    file_2_path = 'scratch/file_2.xlsx'
+    file_3_path = 'scratch/file_3.xlsx'
+    
+    data_25_26 = {}
+    
+    try:
+        if os.path.exists(file_3_path):
+            wb3 = openpyxl.load_workbook(file_3_path, data_only=True)
+            for grade in ['Diesel', 'MS-74', '100 Octane']:
+                if grade in wb3.sheetnames:
+                    sheet = wb3[grade]
+                    rows = list(sheet.iter_rows(values_only=True))
+                    for r in rows[4:]:
+                        if not r or r[0] is None:
+                            continue
+                        unit = str(r[0]).strip()
+                        if "total" in unit.lower() or "grand" in unit.lower() or unit == "":
+                            continue
+                        unit = unit_map.get(unit, unit)
+                        
+                        for m_idx, month in enumerate(months):
+                            alt_val = r[m_idx + 1]
+                            if alt_val is None:
+                                alt_val = None
+                            else:
+                                try:
+                                    alt_val = float(alt_val)
+                                except:
+                                    alt_val = None
+                            
+                            key = (unit, grade, month)
+                            data_25_26[key] = {'alt': alt_val, 'exp': None}
+                            
+        if os.path.exists(file_2_path):
+            wb2 = openpyxl.load_workbook(file_2_path, data_only=True)
+            for grade in ['Diesel', 'MS-74', '100 Octane']:
+                if grade in wb2.sheetnames:
+                    sheet = wb2[grade]
+                    rows = list(sheet.iter_rows(values_only=True))
+                    for r in rows[4:]:
+                        if not r or r[0] is None:
+                            continue
+                        unit = str(r[0]).strip()
+                        if "total" in unit.lower() or "grand" in unit.lower() or unit == "":
+                            continue
+                        unit = unit_map.get(unit, unit)
+                        
+                        for m_idx, month in enumerate(months):
+                            exp_val = r[m_idx + 1]
+                            if exp_val is None:
+                                exp_val = None
+                            else:
+                                try:
+                                    exp_val = float(exp_val)
+                                except:
+                                    exp_val = None
+                            
+                            key = (unit, grade, month)
+                            if key not in data_25_26:
+                                data_25_26[key] = {'alt': None, 'exp': exp_val}
+                            else:
+                                data_25_26[key]['exp'] = exp_val
+                                
+        for (unit, grade, month), vals in data_25_26.items():
+            cursor.execute('''
+                INSERT INTO pol_monthly_records (unit_name, fiscal_year, month, pol_grade, allocation, expenditure)
+                VALUES (?, ?, ?, ?, ?, ?)
+            ''', (unit, '2025-26', month, grade, vals['alt'], vals['exp']))
+    except Exception as e:
+        print("Failed seeding FY 2025-26:", e)
+        
+    conn.commit()
+
+@app.route('/api/pol/summary', methods=['GET'])
+def get_pol_summary():
+    year = request.args.get("year", "2025-26")
+    grade = request.args.get("grade", "Diesel")
+    scope = request.args.get("scope", "division")
+    assigned = request.args.get("assigned", "")
+    
+    # Check if we should fall back to mock data
+    if year not in ['2024-25', '2025-26']:
+        mock_data = LINE_MOCK_DATA.get(year, {}).get(grade, {})
+        return jsonify({
+            "altData": mock_data.get("altData", []),
+            "data": mock_data.get("data", []),
+            "alt": mock_data.get("alt", 0.0),
+            "total": mock_data.get("total", 0.0)
+        })
+        
+    conn = get_db()
+    cursor = conn.cursor()
+    
+    months = ['Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun']
+    
+    # If the year is 2025-26, the user requests to only show up to March 2026
+    if year == '2025-26':
+        active_months = ['Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec', 'Jan', 'Feb', 'Mar']
+    else:
+        active_months = months
+        
+    units_to_query = []
+    if scope == "unit":
+        units_to_query = [assigned]
+    elif scope == "brigade":
+        # Sum both the brigade HQ itself and its subordinate units
+        units_to_query = [assigned] + BRIGADES.get(assigned, [])
+        
+    alt_data = []
+    exp_data = []
+    
+    for month in active_months:
+        if scope == "division":
+            cursor.execute('''
+                SELECT SUM(allocation), SUM(expenditure) 
+                FROM pol_monthly_records 
+                WHERE fiscal_year = ? AND month = ? AND pol_grade = ?
+            ''', (year, month, grade))
+        else:
+            placeholders = ','.join('?' for _ in units_to_query)
+            cursor.execute(f'''
+                SELECT SUM(allocation), SUM(expenditure) 
+                FROM pol_monthly_records 
+                WHERE fiscal_year = ? AND month = ? AND pol_grade = ? AND unit_name IN ({placeholders})
+            ''', (year, month, grade, *units_to_query))
+            
+        row = cursor.fetchone()
+        alt_val = row[0] if row and row[0] is not None else None
+        exp_val = row[1] if row and row[1] is not None else None
+        
+        alt_data.append(alt_val)
+        exp_data.append(exp_val)
+        
+    total_alt = sum(v for v in alt_data if v is not None)
+    total_exp = sum(v for v in exp_data if v is not None)
+    
+    conn.close()
+    
+    return jsonify({
+        "altData": alt_data,
+        "data": exp_data,
+        "alt": total_alt,
+        "total": total_exp
+    })
 
 if __name__ == '__main__':
     init_db()

@@ -283,7 +283,7 @@ export function renderMainDashboard(container) {
   const currentYearDisplay = state.language === "bn" ? convertDigitsToBengali(state.dashboard.lineYear) : state.dashboard.lineYear;
   const currentGradeDisplay = getGradeLabel(state.dashboard.lineGrade);
 
-  const initialLineVal = LINE_MOCK_DATA[state.dashboard.lineYear][state.dashboard.lineGrade];
+  const initialLineVal = state.dashboard.lineChartData || { alt: 0, total: 0 };
 
   container.innerHTML = `
     <div id="main-dashboard-content">
@@ -523,10 +523,7 @@ export function renderMainDashboard(container) {
   if (lineYearSelect) {
     lineYearSelect.onchange = (e) => {
       state.dashboard.lineYear = e.target.value;
-      const dataVal = LINE_MOCK_DATA[state.dashboard.lineYear][state.dashboard.lineGrade];
-      document.getElementById("total-alt-value").innerText = formatDisplayNumber(dataVal.alt);
-      document.getElementById("total-exp-value").innerText = formatDisplayNumber(dataVal.total);
-      initMainDashboardCharts();
+      updateLineChartData();
     };
   }
 
@@ -534,15 +531,12 @@ export function renderMainDashboard(container) {
   if (lineGradeSelect) {
     lineGradeSelect.onchange = (e) => {
       state.dashboard.lineGrade = e.target.value;
-      const dataVal = LINE_MOCK_DATA[state.dashboard.lineYear][state.dashboard.lineGrade];
-      document.getElementById("total-alt-value").innerText = formatDisplayNumber(dataVal.alt);
-      document.getElementById("total-exp-value").innerText = formatDisplayNumber(dataVal.total);
-      initMainDashboardCharts();
+      updateLineChartData();
     };
   }
 
-  // Initialize charts after markup injects
-  initMainDashboardCharts();
+  // Initialize charts and load data asynchronously
+  updateLineChartData();
 }
 
 export function renderDashboardContent() {
@@ -819,7 +813,7 @@ export function checkWriteAccess(unitName) {
   if (role === 5) return true;
   if (role === 3) {
     const userBde = state.currentUser.scopeBde;
-    return BRIGADES[userBde] && BRIGADES[userBde].includes(unitName);
+    return unitName === userBde || (BRIGADES[userBde] && BRIGADES[userBde].includes(unitName));
   }
   if (role === 1) {
     return state.currentUser.scopeUnit === unitName;
@@ -1025,4 +1019,39 @@ export function renderRoleImpersonatorList() {
     btn.onclick = () => impersonateRole(u.username);
     list.appendChild(btn);
   });
+}
+
+export async function updateLineChartData() {
+  const year = state.dashboard.lineYear || "2025-26";
+  const grade = state.dashboard.lineGrade || "Diesel";
+  
+  let scope = "division";
+  let assigned = "";
+  
+  const role = state.currentUser ? state.currentUser.role : 6;
+  if (role === 1 || role === 2) {
+    scope = "unit";
+    assigned = state.currentUser.unitName;
+  } else if (role === 3 || role === 4) {
+    scope = "brigade";
+    assigned = state.currentUser.unitName;
+  } else {
+    scope = "division";
+  }
+  
+  try {
+    const url = `/api/pol/summary?year=${encodeURIComponent(year)}&grade=${encodeURIComponent(grade)}&scope=${scope}&assigned=${encodeURIComponent(assigned)}`;
+    const res = await fetch(url);
+    const data = await res.json();
+    state.dashboard.lineChartData = data;
+    
+    const altValEl = document.getElementById("total-alt-value");
+    const expValEl = document.getElementById("total-exp-value");
+    if (altValEl) altValEl.innerText = formatDisplayNumber(data.alt);
+    if (expValEl) expValEl.innerText = formatDisplayNumber(data.total);
+    
+    initMainDashboardCharts();
+  } catch (err) {
+    console.error("Failed to load line chart data:", err);
+  }
 }

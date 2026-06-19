@@ -80,8 +80,12 @@ export function initMainDashboardCharts() {
       const lang = e.detail.language;
       state.charts.line.data.datasets[0].label = lang === 'bn' ? 'মোট বরাদ্দ' : 'Total Alt';
       state.charts.line.data.datasets[1].label = lang === 'bn' ? 'মোট খরচ' : 'Total Exp';
-      const monthsEn = ['Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'];
-      const monthsBn = ['জুলাই', 'আগস্ট', 'সেপ্টেম্বর', 'অক্টোবর', 'নভেম্বর', 'ডিসেম্বর', 'জানুয়ারি', 'ফেব্রুয়ারি', 'মার্চ', 'এপ্রিল', 'মে', 'জুন'];
+      let monthsEn = ['Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'];
+      let monthsBn = ['জুলাই', 'আগস্ট', 'সেপ্টেম্বর', 'অক্টোবর', 'নভেম্বর', 'ডিসেম্বর', 'জানুয়ারি', 'ফেব্রুয়ারি', 'মার্চ', 'এপ্রিল', 'মে', 'জুন'];
+      if (state.dashboard.lineYear === '2025-26') {
+        monthsEn = ['Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec', 'Jan', 'Feb', 'Mar'];
+        monthsBn = ['জুলাই', 'আগস্ট', 'সেপ্টেম্বর', 'অক্টোবর', 'নভেম্বর', 'ডিসেম্বর', 'জানুয়ারি', 'ফেব্রুয়ারি', 'মার্চ'];
+      }
       state.charts.line.data.labels = lang === 'bn' ? monthsBn : monthsEn;
       state.charts.line.update();
     }
@@ -95,7 +99,7 @@ export function initMainDashboardCharts() {
     }
 
     const lineCtx = lineCanvas.getContext("2d");
-    const lineVal = LINE_MOCK_DATA[state.dashboard.lineYear || "2025-26"][state.dashboard.lineGrade || "Diesel"];
+    const lineVal = state.dashboard.lineChartData || { altData: [], data: [], alt: 0, total: 0 };
 
     const gradeYConfig = {
       "Diesel": { min: 80000, max: 130000, stepSize: 10000 },
@@ -112,8 +116,12 @@ export function initMainDashboardCharts() {
     gradientExp.addColorStop(0, 'rgba(239, 68, 68, 0.05)');
     gradientExp.addColorStop(1, 'rgba(239, 68, 68, 0)');
 
-    const monthsEn = ['Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'];
-    const monthsBn = ['জুলাই', 'আগস্ট', 'সেপ্টেম্বর', 'অক্টোবর', 'নভেম্বর', 'ডিসেম্বর', 'জানুয়ারি', 'ফেব্রুয়ারি', 'মার্চ', 'এপ্রিল', 'মে', 'জুন'];
+    let monthsEn = ['Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'];
+    let monthsBn = ['জুলাই', 'আগস্ট', 'সেপ্টেম্বর', 'অক্টোবর', 'নভেম্বর', 'ডিসেম্বর', 'জানুয়ারি', 'ফেব্রুয়ারি', 'মার্চ', 'এপ্রিল', 'মে', 'জুন'];
+    if (state.dashboard.lineYear === '2025-26') {
+      monthsEn = ['Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec', 'Jan', 'Feb', 'Mar'];
+      monthsBn = ['জুলাই', 'আগস্ট', 'সেপ্টেম্বর', 'অক্টোবর', 'নভেম্বর', 'ডিসেম্বর', 'জানুয়ারি', 'ফেব্রুয়ারি', 'মার্চ'];
+    }
     const labels = state.language === 'bn' ? monthsBn : monthsEn;
 
     const labelAlt = state.language === 'bn' ? 'মোট বরাদ্দ' : 'Total Alt';
