@@ -74,6 +74,19 @@ export function initMainDashboardCharts() {
     });
   }
 
+  // --- Line Chart Language Switch Event Listener ---
+  window.addEventListener("languagechange", (e) => {
+    if (state.charts.line) {
+      const lang = e.detail.language;
+      state.charts.line.data.datasets[0].label = lang === 'bn' ? 'মোট বরাদ্দ' : 'Total Alt';
+      state.charts.line.data.datasets[1].label = lang === 'bn' ? 'মোট খরচ' : 'Total Exp';
+      const monthsEn = ['Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'];
+      const monthsBn = ['জুলাই', 'আগস্ট', 'সেপ্টেম্বর', 'অক্টোবর', 'নভেম্বর', 'ডিসেম্বর', 'জানুয়ারি', 'ফেব্রুয়ারি', 'মার্চ', 'এপ্রিল', 'মে', 'জুন'];
+      state.charts.line.data.labels = lang === 'bn' ? monthsBn : monthsEn;
+      state.charts.line.update();
+    }
+  });
+
   // --- Line Chart Rendering ---
   const lineCanvas = document.getElementById("total-exp-line-chart");
   if (lineCanvas) {
@@ -84,45 +97,87 @@ export function initMainDashboardCharts() {
     const lineCtx = lineCanvas.getContext("2d");
     const lineVal = LINE_MOCK_DATA[state.dashboard.lineYear || "2025-26"][state.dashboard.lineGrade || "Diesel"];
 
-    const gradient = lineCtx.createLinearGradient(0, 0, 0, 140);
-    gradient.addColorStop(0, 'rgba(59, 130, 246, 0.15)');
-    gradient.addColorStop(1, 'rgba(59, 130, 246, 0)');
+    const gradientAlt = lineCtx.createLinearGradient(0, 0, 0, 140);
+    gradientAlt.addColorStop(0, 'rgba(59, 130, 246, 0.12)');
+    gradientAlt.addColorStop(1, 'rgba(59, 130, 246, 0)');
+
+    const gradientExp = lineCtx.createLinearGradient(0, 0, 0, 140);
+    gradientExp.addColorStop(0, 'rgba(239, 68, 68, 0.05)');
+    gradientExp.addColorStop(1, 'rgba(239, 68, 68, 0)');
 
     const monthsEn = ['Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'];
     const monthsBn = ['জুলাই', 'আগস্ট', 'সেপ্টেম্বর', 'অক্টোবর', 'নভেম্বর', 'ডিসেম্বর', 'জানুয়ারি', 'ফেব্রুয়ারি', 'মার্চ', 'এপ্রিল', 'মে', 'জুন'];
     const labels = state.language === 'bn' ? monthsBn : monthsEn;
 
+    const labelAlt = state.language === 'bn' ? 'মোট বরাদ্দ' : 'Total Alt';
+    const labelExp = state.language === 'bn' ? 'মোট খরচ' : 'Total Exp';
+
     state.charts.line = new Chart(lineCtx, {
       type: 'line',
       data: {
         labels: labels,
-        datasets: [{
-          data: lineVal.data,
-          borderColor: '#3b82f6',
-          borderWidth: 2.5,
-          tension: 0.4,
-          fill: true,
-          backgroundColor: gradient,
-          pointBackgroundColor: '#3b82f6',
-          pointBorderColor: '#ffffff',
-          pointBorderWidth: 2,
-          pointRadius: 3,
-          pointHoverRadius: 5
-        }]
+        datasets: [
+          {
+            label: labelAlt,
+            data: lineVal.altData || [],
+            borderColor: '#3b82f6',
+            borderWidth: 3,
+            tension: 0.4,
+            fill: true,
+            backgroundColor: gradientAlt,
+            pointBackgroundColor: '#3b82f6',
+            pointBorderColor: '#ffffff',
+            pointBorderWidth: 2,
+            pointRadius: 3,
+            pointHoverRadius: 5
+          },
+          {
+            label: labelExp,
+            data: lineVal.data || [],
+            borderColor: '#f87171',
+            borderWidth: 3,
+            tension: 0.4,
+            fill: true,
+            backgroundColor: gradientExp,
+            pointBackgroundColor: '#f87171',
+            pointBorderColor: '#ffffff',
+            pointBorderWidth: 2,
+            pointRadius: 3,
+            pointHoverRadius: 5
+          }
+        ]
       },
       options: {
         responsive: true,
         maintainAspectRatio: false,
         plugins: {
           legend: {
-            display: false
+            display: true,
+            position: 'top',
+            align: 'end',
+            labels: {
+              boxWidth: 8,
+              boxHeight: 8,
+              usePointStyle: true,
+              pointStyle: 'circle',
+              font: {
+                family: "'Inter', sans-serif",
+                size: 9,
+                weight: '600'
+              },
+              color: '#475569',
+              padding: 10
+            }
           },
           tooltip: {
             enabled: true,
+            mode: 'index',
+            intersect: false,
             callbacks: {
               label: function(context) {
+                const label = context.dataset.label || '';
                 const val = context.raw;
-                return (state.language === 'bn' ? 'খরচ: ' : 'Exp: ') + formatDisplayNumber(val);
+                return label + ': ' + formatDisplayNumber(val);
               }
             }
           }
