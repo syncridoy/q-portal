@@ -1,7 +1,7 @@
-import { state, DONUT_MOCK_DATA, LINE_MOCK_DATA } from './state.js';
+import { state, DONUT_MOCK_DATA } from './state.js';
 import { TRANSLATIONS, convertDigitsToBengali, formatDisplayNumber } from './translations.js';
 
-export function initMainDashboardCharts() {
+export function initDonutChart() {
   // --- Donut Chart Rendering ---
   const donutCanvas = document.getElementById("held-donut-chart");
   if (donutCanvas) {
@@ -73,24 +73,9 @@ export function initMainDashboardCharts() {
       }
     });
   }
+}
 
-  // --- Line Chart Language Switch Event Listener ---
-  window.addEventListener("languagechange", (e) => {
-    if (state.charts.line) {
-      const lang = e.detail.language;
-      state.charts.line.data.datasets[0].label = lang === 'bn' ? 'মোট বরাদ্দ' : 'Total Alt';
-      state.charts.line.data.datasets[1].label = lang === 'bn' ? 'মোট খরচ' : 'Total Exp';
-      let monthsEn = ['Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'];
-      let monthsBn = ['জুলাই', 'আগস্ট', 'সেপ্টেম্বর', 'অক্টোবর', 'নভেম্বর', 'ডিসেম্বর', 'জানুয়ারি', 'ফেব্রুয়ারি', 'মার্চ', 'এপ্রিল', 'মে', 'জুন'];
-      if (state.dashboard.lineYear === '2025-26') {
-        monthsEn = ['Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec', 'Jan', 'Feb', 'Mar'];
-        monthsBn = ['জুলাই', 'আগস্ট', 'সেপ্টেম্বর', 'অক্টোবর', 'নভেম্বর', 'ডিসেম্বর', 'জানুয়ারি', 'ফেব্রুয়ারি', 'মার্চ'];
-      }
-      state.charts.line.data.labels = lang === 'bn' ? monthsBn : monthsEn;
-      state.charts.line.update();
-    }
-  });
-
+export function initLineChart() {
   // --- Line Chart Rendering ---
   const lineCanvas = document.getElementById("total-exp-line-chart");
   if (lineCanvas) {
@@ -233,18 +218,18 @@ export function initMainDashboardCharts() {
     }
 
     const gradientAlt = lineCtx.createLinearGradient(0, 0, 0, 140);
-    gradientAlt.addColorStop(0, 'rgba(59, 130, 246, 0.12)');
-    gradientAlt.addColorStop(1, 'rgba(59, 130, 246, 0)');
+    gradientAlt.addColorStop(0, 'rgba(75, 127, 204, 0.24)');
+    gradientAlt.addColorStop(1, 'rgba(75, 127, 204, 0.02)');
 
     const gradientExp = lineCtx.createLinearGradient(0, 0, 0, 140);
-    gradientExp.addColorStop(0, 'rgba(239, 68, 68, 0.05)');
-    gradientExp.addColorStop(1, 'rgba(239, 68, 68, 0)');
+    gradientExp.addColorStop(0, 'rgba(248, 113, 113, 0.24)');
+    gradientExp.addColorStop(1, 'rgba(248, 113, 113, 0.02)');
 
     let monthsEn = ['Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'];
     let monthsBn = ['জুলাই', 'আগস্ট', 'সেপ্টেম্বর', 'অক্টোবর', 'নভেম্বর', 'ডিসেম্বর', 'জানুয়ারি', 'ফেব্রুয়ারি', 'মার্চ', 'এপ্রিল', 'মে', 'জুন'];
     if (state.dashboard.lineYear === '2025-26') {
-      monthsEn = ['Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec', 'Jan', 'Feb', 'Mar'];
-      monthsBn = ['জুলাই', 'আগস্ট', 'সেপ্টেম্বর', 'অক্টোবর', 'নভেম্বর', 'ডিসেম্বর', 'জানুয়ারি', 'ফেব্রুয়ারি', 'মার্চ'];
+      monthsEn = ['Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec', 'Jan', 'Feb'];
+      monthsBn = ['জুলাই', 'আগস্ট', 'সেপ্টেম্বর', 'অক্টোবর', 'নভেম্বর', 'ডিসেম্বর', 'জানুয়ারি', 'ফেব্রুয়ারি'];
     }
     const labels = state.language === 'bn' ? monthsBn : monthsEn;
 
@@ -259,12 +244,12 @@ export function initMainDashboardCharts() {
           {
             label: labelAlt,
             data: lineVal.altData || [],
-            borderColor: '#3b82f6',
+            borderColor: '#4b7fcc',
             borderWidth: 3,
             tension: 0.4,
             fill: true,
             backgroundColor: gradientAlt,
-            pointBackgroundColor: '#3b82f6',
+            pointBackgroundColor: '#4b7fcc',
             pointBorderColor: '#ffffff',
             pointBorderWidth: 2,
             pointRadius: 3,
@@ -360,3 +345,41 @@ export function initMainDashboardCharts() {
     });
   }
 }
+
+export function initMainDashboardCharts() {
+  initDonutChart();
+  initLineChart();
+}
+
+// --- Language Switch Event Listener (Registered Once at Module Scope) ---
+window.addEventListener("languagechange", (e) => {
+  const lang = e.detail.language;
+
+  // Update line chart
+  if (state.charts.line) {
+    state.charts.line.data.datasets[0].label = lang === 'bn' ? 'মোট বরাদ্দ' : 'Total Alt';
+    state.charts.line.data.datasets[1].label = lang === 'bn' ? 'মোট খরচ' : 'Total Exp';
+    let monthsEn = ['Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'];
+    let monthsBn = ['জুলাই', 'আগস্ট', 'সেপ্টেম্বর', 'অক্টোবর', 'নভেম্বর', 'ডিসেম্বর', 'জানুয়ারি', 'ফেব্রুয়ারি', 'মার্চ', 'এপ্রিল', 'মে', 'জুন'];
+    if (state.dashboard.lineYear === '2025-26') {
+      monthsEn = ['Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec', 'Jan', 'Feb'];
+      monthsBn = ['জুলাই', 'আগস্ট', 'সেপ্টেম্বর', 'অক্টোবর', 'নভেম্বর', 'ডিসেম্বর', 'জানুয়ারি', 'ফেব্রুয়ারি'];
+    }
+    state.charts.line.data.labels = lang === 'bn' ? monthsBn : monthsEn;
+    state.charts.line.update();
+  }
+
+  // Update donut chart center label
+  if (state.charts.donut) {
+    const donutVal = DONUT_MOCK_DATA[state.dashboard.donutVehicle || "Jeep"];
+    const centerValEl = document.getElementById("donut-center-val");
+    if (centerValEl) {
+      centerValEl.innerText = lang === 'bn' ? convertDigitsToBengali(donutVal.held) : donutVal.held;
+    }
+    const centerLblEl = document.getElementById("donut-center-label");
+    if (centerLblEl) {
+      centerLblEl.innerText = TRANSLATIONS[lang]["card_title_held"] || "Held";
+    }
+    state.charts.donut.update();
+  }
+});

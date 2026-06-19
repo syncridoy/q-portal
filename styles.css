@@ -2,7 +2,7 @@
    Q-PORTAL DESIGN SYSTEM (APPLE MINIMALIST OVERHAUL)
    =================================================== */
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&family=Outfit:wght@400;500;600;700;800&display=swap');
 
 :root {
   /* Apple Neutral Palette */
@@ -2338,12 +2338,13 @@ body.modal-open {
   display: flex;
   flex-direction: column;
   position: relative;
-  transition: transform 0.25s ease, box-shadow 0.25s ease;
+  transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
 }
 
 .dashboard-card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.05);
+  border-color: rgba(75, 127, 204, 0.25);
+  box-shadow: 0 8px 30px rgba(75, 127, 204, 0.08);
 }
 
 .card-header-row {
@@ -2404,6 +2405,7 @@ body.modal-open {
   border: 1px solid rgba(226, 232, 240, 0.8);
   padding: 10px 8px;
   vertical-align: middle;
+  transition: font-weight 0.2s ease, color 0.2s ease, background-color 0.2s ease;
 }
 
 .dashboard-table td {
@@ -2412,9 +2414,15 @@ body.modal-open {
   font-size: 13px;
   color: #334155;
   font-weight: 500;
+  position: relative;
+  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.2s ease, border-color 0.2s ease, font-weight 0.2s ease, color 0.2s ease;
 }
 
 /* Soft alternating pastel row stripes */
+.dashboard-table tbody tr {
+  transition: background-color 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
 .dashboard-table tbody tr:nth-child(odd) {
   background: rgba(219, 234, 254, 0.35); /* ultra-faint pastel blue */
 }
@@ -2442,5 +2450,85 @@ body.modal-open {
   }
 }
 
+/* Metric Card Hover and Interactive Styling */
+.metric-card-box {
+  padding: 6px 10px;
+  border-radius: 8px;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+  transform: translateY(-1px);
+}
 
+.metric-card-box.allocation-card {
+  background: rgba(75, 127, 204, 0.05);
+  border: 1px solid rgba(75, 127, 204, 0.12);
+  box-shadow: 0 4px 12px rgba(75, 127, 204, 0.06);
+}
 
+.metric-card-box.expenditure-card {
+  background: rgba(248, 113, 113, 0.05);
+  border: 1px solid rgba(248, 113, 113, 0.12);
+  box-shadow: 0 4px 12px rgba(248, 113, 113, 0.06);
+}
+
+.metric-value {
+  font-family: 'Inter', sans-serif;
+  font-weight: 500;
+  display: inline-block;
+  text-shadow: 0 0 1px currentColor;
+  transform: scale(1.02);
+  transition: font-weight 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.metric-card-box:hover .metric-value {
+  font-weight: 700;
+}
+
+/* Custom styling for State of POL table with glowing border lines */
+.pol-state-table {
+  border-collapse: collapse !important;
+  margin-top: 0px;
+}
+
+.pol-state-table th {
+  border: 1px solid rgba(75, 127, 204, 0.25) !important;
+  background: rgba(226, 232, 240, 0.7) !important;
+  transition: font-weight 0.2s ease, color 0.2s ease, background-color 0.2s ease;
+}
+
+.pol-state-table tbody tr {
+  transition: background-color 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.pol-state-table tbody tr:nth-child(odd) {
+  background: rgba(75, 127, 204, 0.03) !important;
+}
+
+.pol-state-table tbody tr:nth-child(even) {
+  background: rgba(255, 255, 255, 0.5) !important;
+}
+
+.pol-state-table td {
+  border: 1px solid rgba(75, 127, 204, 0.18) !important;
+  position: relative;
+  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.2s ease, border-color 0.2s ease, font-weight 0.2s ease, color 0.2s ease;
+}
+
+/* Global Table Header and Left-Header Bolding Highlight */
+.header-highlight {
+  font-weight: 700 !important;
+  color: #111827 !important;
+  background: rgba(75, 127, 204, 0.06) !important;
+  text-shadow: 0 0 0.5px currentColor;
+}
+
+/* Global Table Cell Hover Pop-Out (No Bolding / No Layout Shifts) */
+.dashboard-table td.cell-active-focus,
+.pol-state-table td.cell-active-focus {
+  background: rgba(255, 255, 255, 0.95) !important;
+  border-color: rgba(75, 127, 204, 0.4) !important;
+  transform: scale(1.08);
+  box-shadow: 0 6px 16px rgba(75, 127, 204, 0.16) !important;
+  z-index: 10;
+  color: #111827 !important;
+}

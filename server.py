@@ -649,9 +649,9 @@ def get_pol_summary():
     
     months = ['Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun']
     
-    # If the year is 2025-26, the user requests to only show up to March 2026
+    # If the year is 2025-26, show up to February 2026 as March data is not ready yet
     if year == '2025-26':
-        active_months = ['Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec', 'Jan', 'Feb', 'Mar']
+        active_months = ['Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec', 'Jan', 'Feb']
     else:
         active_months = months
         

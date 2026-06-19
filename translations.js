@@ -151,6 +151,10 @@ export const TRANSLATIONS = {
     row_nce: "NC (E)",
     lbl_total_alt: "Allocation\nTotal\navg",
     lbl_total_exp: "Expenditure\nTotal\navg",
+    lbl_alloc_heading: "Allocation",
+    lbl_exp_heading: "Expenditure",
+    lbl_total_label: "Total",
+    lbl_avg_label: "avg",
     lbl_last_month_exp: "Last Month Exp"
   },
   bn: {
@@ -302,6 +306,10 @@ export const TRANSLATIONS = {
     row_nce: "এনসি (ই)",
     lbl_total_alt: "বরাদ্দ\nমোট\nগড়",
     lbl_total_exp: "ব্যয়\nমোট\nগড়",
+    lbl_alloc_heading: "বরাদ্দ",
+    lbl_exp_heading: "ব্যয়",
+    lbl_total_label: "মোট",
+    lbl_avg_label: "গড়",
     lbl_last_month_exp: "গত মাসের ব্যয়"
   }
 };

@@ -2158,6 +2158,59 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
   });
 
+  // --- Global Table Cell Hover Interactions (Header Bolding & Cell Pop-Out) ---
+  document.addEventListener("mouseover", (e) => {
+    const td = e.target.closest(".dashboard-table tbody td, .pol-state-table tbody td");
+    if (!td) return;
+    
+    const tr = td.parentElement;
+    const table = tr.closest("table");
+    if (!table) return;
+
+    const cellIndex = td.cellIndex;
+    
+    // 1. Highlight left header (first cell of this row)
+    const leftHeader = tr.cells[0];
+    if (leftHeader && leftHeader !== td) {
+      leftHeader.classList.add("header-highlight");
+    }
+    
+    // 2. Highlight top header (th at the same column index in thead)
+    const ths = table.querySelectorAll("thead th");
+    const topHeader = ths[cellIndex];
+    if (topHeader) {
+      topHeader.classList.add("header-highlight");
+    }
+    
+    // 3. Scale and pop-out the cell itself
+    td.classList.add("cell-active-focus");
+  });
+
+  document.addEventListener("mouseout", (e) => {
+    const td = e.target.closest(".dashboard-table tbody td, .pol-state-table tbody td");
+    if (!td) return;
+    
+    const tr = td.parentElement;
+    const table = tr.closest("table");
+    if (!table) return;
+    
+    const cellIndex = td.cellIndex;
+    
+    // Remove highlights
+    const leftHeader = tr.cells[0];
+    if (leftHeader) {
+      leftHeader.classList.remove("header-highlight");
+    }
+    
+    const ths = table.querySelectorAll("thead th");
+    const topHeader = ths[cellIndex];
+    if (topHeader) {
+      topHeader.classList.remove("header-highlight");
+    }
+    
+    td.classList.remove("cell-active-focus");
+  });
+
   window.addEventListener("resize", () => updateNavIndicator(true));
   switchView(state.activeView);
   setLanguage(state.language);

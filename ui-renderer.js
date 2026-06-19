@@ -2,7 +2,7 @@
 
 import { state, BRIGADES, ALL_UNITS_LIST, ROLE_TABS, getRoleCategory, toTitleCase, normalizeAppointment, LINE_MOCK_DATA } from './state.js';
 import { TRANSLATIONS, t, formatDisplayNumber, setLanguage, convertDigitsToBengali } from './translations.js';
-import { initMainDashboardCharts } from './charts.js';
+import { initMainDashboardCharts, initDonutChart, initLineChart } from './charts.js';
 
 // Reference app.js functions through window object to avoid circular dependencies
 function showToast(...args) {
@@ -300,8 +300,6 @@ function populateEntitySelectOptions(role) {
     const allLabel = isBn ? "HQ 55 Inf Div" : "HQ 55 Inf Div";
     html += `<option value="ALL" ${selectedEntity === "ALL" ? "selected" : ""}>${allLabel}</option>`;
     
-    const bdeGroupLabel = isBn ? "ব্রিগেড / গ্রুপ সমূহ" : "Brigades / Groups";
-    html += `<optgroup label="${bdeGroupLabel}">`;
     Object.keys(BRIGADES).forEach(bde => {
       if (bde === "HQ 55 Inf Div (Direct)") return;
       let bdeLabel = bde;
@@ -310,15 +308,11 @@ function populateEntitySelectOptions(role) {
       }
       html += `<option value="brigade:${bde}" ${selectedEntity === `brigade:${bde}` ? "selected" : ""}>${bdeLabel}</option>`;
     });
-    html += `</optgroup>`;
     
-    const unitGroupLabel = isBn ? "ইউনিট সমূহ" : "Individual Units";
-    html += `<optgroup label="${unitGroupLabel}">`;
     const directUnits = BRIGADES["HQ 55 Inf Div (Direct)"] || [];
     directUnits.forEach(u => {
       html += `<option value="unit:${u}" ${selectedEntity === `unit:${u}` ? "selected" : ""}>${getDisplayNameForUnit(u)}</option>`;
     });
-    html += `</optgroup>`;
   }
   
   return html;
@@ -350,7 +344,7 @@ export function renderMainDashboard(container) {
   const currentYearDisplay = state.language === "bn" ? convertDigitsToBengali(state.dashboard.lineYear) : state.dashboard.lineYear;
   const currentGradeDisplay = getGradeLabel(state.dashboard.lineGrade);
 
-  const initialLineVal = state.dashboard.lineChartData || { alt: 0, total: 0 };
+  const initialLineVal = state.dashboard.lineChartData || { alt: 0, total: 0, altData: [], data: [] };
 
   container.innerHTML = `
     <div id="main-dashboard-content">
@@ -431,7 +425,7 @@ export function renderMainDashboard(container) {
               <h4 class="card-header-title">${t("card_title_pol_state")}</h4>
             </div>
             <div class="dashboard-table-container">
-              <table class="dashboard-table">
+              <table class="dashboard-table pol-state-table">
                 <thead>
                   <tr>
                     <th>${t("th_pol_grade")}</th>
@@ -443,15 +437,21 @@ export function renderMainDashboard(container) {
                 <tbody>
                   <tr>
                     <td><strong>${t("row_diesel")}</strong></td>
-                    <td></td><td></td><td></td>
+                    <td>${formatDisplayNumber(1292544)}</td>
+                    <td>${formatDisplayNumber(1292544)}</td>
+                    <td>${formatDisplayNumber(0)}</td>
                   </tr>
                   <tr>
                     <td><strong>${t("row_ms74")}</strong></td>
-                    <td></td><td></td><td></td>
+                    <td>${formatDisplayNumber(4737)}</td>
+                    <td>${formatDisplayNumber(4737)}</td>
+                    <td>${formatDisplayNumber(0)}</td>
                   </tr>
                   <tr>
                     <td><strong>${t("row_100octane")}</strong></td>
-                    <td></td><td></td><td></td>
+                    <td>${formatDisplayNumber(26685)}</td>
+                    <td>${formatDisplayNumber(26685)}</td>
+                    <td>${formatDisplayNumber(0)}</td>
                   </tr>
                 </tbody>
               </table>
@@ -474,21 +474,39 @@ export function renderMainDashboard(container) {
             </div>
             ${[3, 4, 5, 6].includes(Number(role)) ? `
             <div class="card-header-row" style="margin-bottom: 12px; justify-content: flex-start;">
-              <select id="line-entity-select" class="mini-dropdown" style="width: auto; max-width: 180px;">
+              <select id="line-entity-select" class="mini-dropdown" style="width: auto; max-width: 150px;">
                 ${populateEntitySelectOptions(role)}
               </select>
             </div>
             ` : ''}
             <div style="display: flex; width: 100%; align-items: center; gap: 20px; flex: 1;">
               <!-- Left side stats -->
-              <div style="flex: 0 0 160px; display: flex; flex-direction: column; gap: 14px;">
-                <div>
-                  <span style="font-size: 11px; font-weight: 600; color: #64748b; display: block; white-space: pre-line; line-height: 1.3;" data-translate="lbl_total_alt">${t("lbl_total_alt")}</span>
-                  <span id="total-alt-value" style="font-size: 18px; font-weight: 600; color: #3b82f6; display: block; font-family: 'Inter', sans-serif;">${formatDisplayNumber(initialLineVal.alt)}</span>
+              <div style="flex: 0 0 170px; display: flex; flex-direction: column; gap: 8px;">
+                <div class="metric-card-box allocation-card">
+                  <span style="font-size: 11px; font-weight: 700; color: #4b7fcc; display: block; text-transform: uppercase; letter-spacing: 0.5px;" data-translate="lbl_alloc_heading">${t("lbl_alloc_heading")}</span>
+                  <div style="display: flex; align-items: center; margin-top: 3px; font-size: 12px; font-weight: 600; color: #4b7fcc;">
+                    <span style="display: inline-block; width: 45px;" data-translate="lbl_total_label">${t("lbl_total_label")}</span>
+                    <span style="margin-right: 4px;">:</span>
+                    <span id="total-alt-value" class="metric-value">${formatDisplayNumber(initialLineVal.alt)}</span>
+                  </div>
+                  <div style="display: flex; align-items: center; margin-top: 1px; font-size: 11px; font-weight: 500; color: #4b7fcc;">
+                    <span style="display: inline-block; width: 45px;" data-translate="lbl_avg_label">${t("lbl_avg_label")}</span>
+                    <span style="margin-right: 4px;">:</span>
+                    <span id="avg-alt-value" class="metric-value">${formatDisplayNumber((initialLineVal.alt || 0) / ((initialLineVal.altData && initialLineVal.altData.length > 0) ? initialLineVal.altData.length : 12))}</span>
+                  </div>
                 </div>
-                <div>
-                  <span style="font-size: 11px; font-weight: 600; color: #64748b; display: block; white-space: pre-line; line-height: 1.3;" data-translate="lbl_total_exp">${t("lbl_total_exp")}</span>
-                  <span id="total-exp-value" style="font-size: 18px; font-weight: 600; color: #f87171; display: block; font-family: 'Inter', sans-serif;">${formatDisplayNumber(initialLineVal.total)}</span>
+                <div class="metric-card-box expenditure-card">
+                  <span style="font-size: 11px; font-weight: 700; color: #f87171; display: block; text-transform: uppercase; letter-spacing: 0.5px;" data-translate="lbl_exp_heading">${t("lbl_exp_heading")}</span>
+                  <div style="display: flex; align-items: center; margin-top: 3px; font-size: 12px; font-weight: 600; color: #f87171;">
+                    <span style="display: inline-block; width: 45px;" data-translate="lbl_total_label">${t("lbl_total_label")}</span>
+                    <span style="margin-right: 4px;">:</span>
+                    <span id="total-exp-value" class="metric-value">${formatDisplayNumber(initialLineVal.total)}</span>
+                  </div>
+                  <div style="display: flex; align-items: center; margin-top: 1px; font-size: 11px; font-weight: 500; color: #f87171;">
+                    <span style="display: inline-block; width: 45px;" data-translate="lbl_avg_label">${t("lbl_avg_label")}</span>
+                    <span style="margin-right: 4px;">:</span>
+                    <span id="avg-exp-value" class="metric-value">${formatDisplayNumber((initialLineVal.total || 0) / ((initialLineVal.altData && initialLineVal.altData.length > 0) ? initialLineVal.altData.length : 12))}</span>
+                  </div>
                 </div>
               </div>
               <!-- Right side canvas -->
@@ -588,7 +606,7 @@ export function renderMainDashboard(container) {
   if (donutSelect) {
     donutSelect.onchange = (e) => {
       state.dashboard.donutVehicle = e.target.value;
-      initMainDashboardCharts();
+      initDonutChart();
     };
   }
 
@@ -1156,13 +1174,35 @@ export async function updateLineChartData() {
     const data = await res.json();
     state.dashboard.lineChartData = data;
     
-    const altValEl = document.getElementById("total-alt-value");
-    const expValEl = document.getElementById("total-exp-value");
-    if (altValEl) altValEl.innerText = formatDisplayNumber(data.alt);
-    if (expValEl) expValEl.innerText = formatDisplayNumber(data.total);
-    
-    initMainDashboardCharts();
+    updateMetricDisplayValues();
+    initLineChart();
   } catch (err) {
     console.error("Failed to load line chart data:", err);
   }
 }
+
+export function updateMetricDisplayValues() {
+  const data = (state.dashboard && state.dashboard.lineChartData) || { alt: 0, total: 0, altData: [], data: [] };
+  
+  const altValEl = document.getElementById("total-alt-value");
+  const avgAltValEl = document.getElementById("avg-alt-value");
+  const expValEl = document.getElementById("total-exp-value");
+  const avgExpValEl = document.getElementById("avg-exp-value");
+  
+  const numMonths = (data.altData && data.altData.length > 0) ? data.altData.length : 12;
+  
+  const totalAlt = data.alt || 0;
+  const avgAlt = numMonths > 0 ? (totalAlt / numMonths) : 0;
+  
+  const totalExp = data.total || 0;
+  const avgExp = numMonths > 0 ? (totalExp / numMonths) : 0;
+  
+  if (altValEl) altValEl.innerText = formatDisplayNumber(totalAlt);
+  if (avgAltValEl) avgAltValEl.innerText = formatDisplayNumber(avgAlt);
+  if (expValEl) expValEl.innerText = formatDisplayNumber(totalExp);
+  if (avgExpValEl) avgExpValEl.innerText = formatDisplayNumber(avgExp);
+}
+
+window.addEventListener("languagechange", () => {
+  updateMetricDisplayValues();
+});
