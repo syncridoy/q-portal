@@ -97,6 +97,13 @@ export function initMainDashboardCharts() {
     const lineCtx = lineCanvas.getContext("2d");
     const lineVal = LINE_MOCK_DATA[state.dashboard.lineYear || "2025-26"][state.dashboard.lineGrade || "Diesel"];
 
+    const gradeYConfig = {
+      "Diesel": { min: 80000, max: 130000, stepSize: 10000 },
+      "MS-74": { min: 30000, max: 80000, stepSize: 10000 },
+      "100 Octane": { min: 10000, max: 60000, stepSize: 10000 }
+    };
+    const currentGradeConfig = gradeYConfig[state.dashboard.lineGrade || "Diesel"] || gradeYConfig["Diesel"];
+
     const gradientAlt = lineCtx.createLinearGradient(0, 0, 0, 140);
     gradientAlt.addColorStop(0, 'rgba(59, 130, 246, 0.12)');
     gradientAlt.addColorStop(1, 'rgba(59, 130, 246, 0)');
@@ -187,11 +194,14 @@ export function initMainDashboardCharts() {
             }
           },
           y: {
+            min: currentGradeConfig.min,
+            max: currentGradeConfig.max,
             grid: {
               color: 'rgba(226, 232, 240, 0.4)',
               drawBorder: false
             },
             ticks: {
+              stepSize: currentGradeConfig.stepSize,
               maxTicksLimit: 6,
               font: {
                 family: "'Inter', sans-serif",
