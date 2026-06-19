@@ -150,29 +150,19 @@ export function initMainDashboardCharts() {
       options: {
         responsive: true,
         maintainAspectRatio: false,
+        interaction: {
+          mode: 'nearest',
+          intersect: true,
+          axis: 'x'
+        },
         plugins: {
           legend: {
-            display: true,
-            position: 'top',
-            align: 'end',
-            labels: {
-              boxWidth: 8,
-              boxHeight: 8,
-              usePointStyle: true,
-              pointStyle: 'circle',
-              font: {
-                family: "'Inter', sans-serif",
-                size: 9,
-                weight: '600'
-              },
-              color: '#475569',
-              padding: 10
-            }
+            display: false
           },
           tooltip: {
             enabled: true,
-            mode: 'index',
-            intersect: false,
+            mode: 'nearest',
+            intersect: true,
             callbacks: {
               label: function(context) {
                 const label = context.dataset.label || '';
@@ -202,6 +192,7 @@ export function initMainDashboardCharts() {
               drawBorder: false
             },
             ticks: {
+              maxTicksLimit: 6,
               font: {
                 family: "'Inter', sans-serif",
                 size: 8,

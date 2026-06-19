@@ -411,11 +411,11 @@ export function renderMainDashboard(container) {
               <div style="flex: 0 0 160px; display: flex; flex-direction: column; gap: 14px;">
                 <div>
                   <span style="font-size: 11px; font-weight: 600; color: #64748b; display: block;" data-translate="lbl_total_alt">${t("lbl_total_alt")}</span>
-                  <span id="total-alt-value" style="font-size: 18px; font-weight: 800; color: #1e293b; display: block; font-family: 'Inter', sans-serif;">${formatDisplayNumber(initialLineVal.alt)}</span>
+                  <span id="total-alt-value" style="font-size: 18px; font-weight: 600; color: #3b82f6; display: block; font-family: 'Inter', sans-serif;">${formatDisplayNumber(initialLineVal.alt)}</span>
                 </div>
                 <div>
                   <span style="font-size: 11px; font-weight: 600; color: #64748b; display: block;" data-translate="lbl_total_exp">${t("lbl_total_exp")}</span>
-                  <span id="total-exp-value" style="font-size: 15px; font-weight: 700; color: #475569; display: block; font-family: 'Inter', sans-serif;">${formatDisplayNumber(initialLineVal.total)}</span>
+                  <span id="total-exp-value" style="font-size: 18px; font-weight: 600; color: #f87171; display: block; font-family: 'Inter', sans-serif;">${formatDisplayNumber(initialLineVal.total)}</span>
                 </div>
               </div>
               <!-- Right side canvas -->
