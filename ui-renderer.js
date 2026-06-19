@@ -382,15 +382,42 @@ export function renderMainDashboard(container) {
                 <tbody>
                   <tr>
                     <td><strong>${t("row_jeep")}</strong></td>
-                    <td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
+                    <td>${formatDisplayNumber(130)}</td>
+                    <td>${formatDisplayNumber(120)}</td>
+                    <td>${formatDisplayNumber(100)}</td>
+                    <td>${formatDisplayNumber(20)}</td>
+                    <td>${formatDisplayNumber(80)}</td>
+                    <td>${formatDisplayNumber(20)}</td>
+                    <td>${formatDisplayNumber(30)}</td>
+                    <td>${formatDisplayNumber(10)}</td>
+                    <td>${formatDisplayNumber(20)}</td>
+                    <td>${formatDisplayNumber(10)}</td>
                   </tr>
                   <tr>
                     <td><strong>${t("row_pickup")}</strong></td>
-                    <td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
+                    <td>${formatDisplayNumber(110)}</td>
+                    <td>${formatDisplayNumber(101)}</td>
+                    <td>${formatDisplayNumber(81)}</td>
+                    <td>${formatDisplayNumber(20)}</td>
+                    <td>${formatDisplayNumber(65)}</td>
+                    <td>${formatDisplayNumber(16)}</td>
+                    <td>${formatDisplayNumber(25)}</td>
+                    <td>${formatDisplayNumber(15)}</td>
+                    <td>${formatDisplayNumber(15)}</td>
+                    <td>${formatDisplayNumber(10)}</td>
                   </tr>
                   <tr>
                     <td><strong>${t("row_3ton")}</strong></td>
-                    <td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
+                    <td>${formatDisplayNumber(160)}</td>
+                    <td>${formatDisplayNumber(140)}</td>
+                    <td>${formatDisplayNumber(111)}</td>
+                    <td>${formatDisplayNumber(29)}</td>
+                    <td>${formatDisplayNumber(85)}</td>
+                    <td>${formatDisplayNumber(26)}</td>
+                    <td>${formatDisplayNumber(45)}</td>
+                    <td>${formatDisplayNumber(25)}</td>
+                    <td>${formatDisplayNumber(25)}</td>
+                    <td>${formatDisplayNumber(10)}</td>
                   </tr>
                 </tbody>
               </table>
@@ -544,23 +571,53 @@ export function renderMainDashboard(container) {
                 <tbody>
                   <tr>
                     <td><strong>${t("row_messwaiter")}</strong></td>
-                    <td></td><td></td><td></td><td></td><td></td><td></td><td></td>
+                    <td>${formatDisplayNumber(210)}</td>
+                    <td>${formatDisplayNumber(194)}</td>
+                    <td>${formatDisplayNumber(172)}</td>
+                    <td>${formatDisplayNumber(10)}</td>
+                    <td>${formatDisplayNumber(6)}</td>
+                    <td>${formatDisplayNumber(6)}</td>
+                    <td>${formatDisplayNumber(22)}</td>
                   </tr>
                   <tr>
                     <td><strong>${t("row_masalchi")}</strong></td>
-                    <td></td><td></td><td></td><td></td><td></td><td></td><td></td>
+                    <td>${formatDisplayNumber(50)}</td>
+                    <td>${formatDisplayNumber(45)}</td>
+                    <td>${formatDisplayNumber(39)}</td>
+                    <td>${formatDisplayNumber(3)}</td>
+                    <td>${formatDisplayNumber(1)}</td>
+                    <td>${formatDisplayNumber(2)}</td>
+                    <td>${formatDisplayNumber(6)}</td>
                   </tr>
                   <tr>
                     <td><strong>${t("row_cook_m")}</strong></td>
-                    <td></td><td></td><td></td><td></td><td></td><td></td><td></td>
+                    <td>${formatDisplayNumber(60)}</td>
+                    <td>${formatDisplayNumber(52)}</td>
+                    <td>${formatDisplayNumber(46)}</td>
+                    <td>${formatDisplayNumber(3)}</td>
+                    <td>${formatDisplayNumber(1)}</td>
+                    <td>${formatDisplayNumber(2)}</td>
+                    <td>${formatDisplayNumber(6)}</td>
                   </tr>
                   <tr>
                     <td><strong>${t("row_cook_u")}</strong></td>
-                    <td></td><td></td><td></td><td></td><td></td><td></td><td></td>
+                    <td>${formatDisplayNumber(55)}</td>
+                    <td>${formatDisplayNumber(48)}</td>
+                    <td>${formatDisplayNumber(42)}</td>
+                    <td>${formatDisplayNumber(3)}</td>
+                    <td>${formatDisplayNumber(1)}</td>
+                    <td>${formatDisplayNumber(2)}</td>
+                    <td>${formatDisplayNumber(6)}</td>
                   </tr>
                   <tr>
                     <td><strong>${t("row_nce")}</strong></td>
-                    <td></td><td></td><td></td><td></td><td></td><td></td><td></td>
+                    <td>${formatDisplayNumber(40)}</td>
+                    <td>${formatDisplayNumber(35)}</td>
+                    <td>${formatDisplayNumber(30)}</td>
+                    <td>${formatDisplayNumber(2)}</td>
+                    <td>${formatDisplayNumber(1)}</td>
+                    <td>${formatDisplayNumber(2)}</td>
+                    <td>${formatDisplayNumber(5)}</td>
                   </tr>
                 </tbody>
               </table>
@@ -589,7 +646,12 @@ export function renderMainDashboard(container) {
                 </thead>
                 <tbody>
                   <tr>
-                    <td></td><td></td><td></td><td></td><td></td><td></td>
+                    <td><strong>${formatDisplayNumber(28)}</strong></td>
+                    <td>${formatDisplayNumber(24)}</td>
+                    <td>${formatDisplayNumber(2)}</td>
+                    <td>${formatDisplayNumber(1)}</td>
+                    <td>${formatDisplayNumber(1)}</td>
+                    <td>${formatDisplayNumber(4)}</td>
                   </tr>
                 </tbody>
               </table>

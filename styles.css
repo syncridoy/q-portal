@@ -2391,25 +2391,25 @@ body.modal-open {
 
 .dashboard-table {
   width: 100%;
-  border-collapse: collapse;
+  border-collapse: collapse !important;
   text-align: center;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
 .dashboard-table th {
-  background: rgba(226, 232, 240, 0.6);
+  background: rgba(226, 232, 240, 0.7) !important;
   color: #475569;
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.5px;
-  border: 1px solid rgba(226, 232, 240, 0.8);
+  border: 1px solid rgba(75, 127, 204, 0.25) !important;
   padding: 10px 8px;
   vertical-align: middle;
   transition: font-weight 0.2s ease, color 0.2s ease, background-color 0.2s ease;
 }
 
 .dashboard-table td {
-  border: 1px solid rgba(226, 232, 240, 0.6);
+  border: 1px solid rgba(75, 127, 204, 0.18) !important;
   padding: 10px 8px;
   font-size: 13px;
   color: #334155;
@@ -2424,11 +2424,11 @@ body.modal-open {
 }
 
 .dashboard-table tbody tr:nth-child(odd) {
-  background: rgba(219, 234, 254, 0.35); /* ultra-faint pastel blue */
+  background: rgba(75, 127, 204, 0.03) !important;
 }
 
 .dashboard-table tbody tr:nth-child(even) {
-  background: rgba(255, 237, 213, 0.35); /* ultra-faint pastel peach */
+  background: rgba(255, 255, 255, 0.5) !important;
 }
 
 .chart-badge {
@@ -2485,34 +2485,7 @@ body.modal-open {
 }
 
 /* Custom styling for State of POL table with glowing border lines */
-.pol-state-table {
-  border-collapse: collapse !important;
-  margin-top: 0px;
-}
-
-.pol-state-table th {
-  border: 1px solid rgba(75, 127, 204, 0.25) !important;
-  background: rgba(226, 232, 240, 0.7) !important;
-  transition: font-weight 0.2s ease, color 0.2s ease, background-color 0.2s ease;
-}
-
-.pol-state-table tbody tr {
-  transition: background-color 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.pol-state-table tbody tr:nth-child(odd) {
-  background: rgba(75, 127, 204, 0.03) !important;
-}
-
-.pol-state-table tbody tr:nth-child(even) {
-  background: rgba(255, 255, 255, 0.5) !important;
-}
-
-.pol-state-table td {
-  border: 1px solid rgba(75, 127, 204, 0.18) !important;
-  position: relative;
-  transition: background-color 0.2s ease, border-color 0.2s ease, font-weight 0.2s ease, color 0.2s ease;
-}
+/* Custom styling for State of POL table is now inherited globally by .dashboard-table */
 
 /* Global Table Header and Left-Header Bolding Highlight */
 .header-highlight {
