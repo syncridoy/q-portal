@@ -276,12 +276,59 @@ export function renderPortalMainContent() {
   }
 }
 
+function populateEntitySelectOptions(role) {
+  const isBn = state.language === "bn";
+  const selectedEntity = state.dashboard.lineEntity || "ALL";
+  let html = "";
+
+  if (role === 3 || role === 4) {
+    const bde = state.currentUser.assigned || state.currentUser.scopeBde;
+    const units = BRIGADES[bde] || [];
+    
+    const allLabel = isBn ? "সকল ইউনিট (ব্রিগেড সামগ্রিক)" : "All Units (Brigade Aggregate)";
+    const hqLabel = isBn ? `ব্রিগেড সদর দপ্তর (${bde})` : `Brigade HQ (${bde})`;
+    
+    html += `<option value="ALL" ${selectedEntity === "ALL" ? "selected" : ""}>${allLabel}</option>`;
+    html += `<option value="HQ" ${selectedEntity === "HQ" ? "selected" : ""}>${hqLabel}</option>`;
+    
+    units.forEach(u => {
+      html += `<option value="unit:${u}" ${selectedEntity === `unit:${u}` ? "selected" : ""}>${getDisplayNameForUnit(u)}</option>`;
+    });
+  } else if (role === 5 || role === 6) {
+    const allLabel = isBn ? "সকল ইউনিট (ডিভিশন সামগ্রিক)" : "All Units (Division Aggregate)";
+    html += `<option value="ALL" ${selectedEntity === "ALL" ? "selected" : ""}>${allLabel}</option>`;
+    
+    const bdeGroupLabel = isBn ? "ব্রিগেড / গ্রুপ সমূহ" : "Brigades / Groups";
+    html += `<optgroup label="${bdeGroupLabel}">`;
+    Object.keys(BRIGADES).forEach(bde => {
+      let bdeLabel = bde;
+      if (isBn) {
+        bdeLabel = bde.replace("HQ", "সদর").replace("Arty Bde", "আর্টিলারি").replace("Inf Bde", "পদাতিক").replace("Inf Div (Direct)", " পদাতিক ডিভিশন (সরাসরি)");
+      }
+      html += `<option value="brigade:${bde}" ${selectedEntity === `brigade:${bde}` ? "selected" : ""}>${bdeLabel}</option>`;
+    });
+    html += `</optgroup>`;
+    
+    const unitGroupLabel = isBn ? "ইউনিট সমূহ" : "Individual Units";
+    html += `<optgroup label="${unitGroupLabel}">`;
+    ALL_UNITS_LIST.forEach(unitObj => {
+      const u = unitObj.name;
+      html += `<option value="unit:${u}" ${selectedEntity === `unit:${u}` ? "selected" : ""}>${getDisplayNameForUnit(u)}</option>`;
+    });
+    html += `</optgroup>`;
+  }
+  
+  return html;
+}
+
 export function renderMainDashboard(container) {
+  const role = state.currentUser ? state.currentUser.role : 6;
   if (!state.dashboard) {
     state.dashboard = {
       donutVehicle: "Jeep",
       lineYear: "2025-26",
-      lineGrade: "Diesel"
+      lineGrade: "Diesel",
+      lineEntity: "ALL"
     };
   }
 
@@ -410,9 +457,8 @@ export function renderMainDashboard(container) {
 
           <!-- Card 4: Total Exp Line Chart -->
           <div class="dashboard-card">
-            <div class="card-header-row">
+            <div class="card-header-row" style="margin-bottom: 6px;">
               <select id="line-year-select" class="mini-dropdown">
-                <option value="2023-24" ${state.dashboard.lineYear === "2023-24" ? "selected" : ""}>2023-24</option>
                 <option value="2024-25" ${state.dashboard.lineYear === "2024-25" ? "selected" : ""}>2024-25</option>
                 <option value="2025-26" ${state.dashboard.lineYear === "2025-26" ? "selected" : ""}>2025-26</option>
                 <option value="2026-27" ${state.dashboard.lineYear === "2026-27" ? "selected" : ""}>2026-27</option>
@@ -423,6 +469,13 @@ export function renderMainDashboard(container) {
                 <option value="100 Octane" ${state.dashboard.lineGrade === "100 Octane" ? "selected" : ""}>100 Octane</option>
               </select>
             </div>
+            ${[3, 4, 5, 6].includes(Number(role)) ? `
+            <div class="card-header-row" style="margin-bottom: 12px; justify-content: flex-start;">
+              <select id="line-entity-select" class="mini-dropdown" style="width: 100%; max-width: 250px;">
+                ${populateEntitySelectOptions(role)}
+              </select>
+            </div>
+            ` : ''}
             <div style="display: flex; width: 100%; align-items: center; gap: 20px; flex: 1;">
               <!-- Left side stats -->
               <div style="flex: 0 0 160px; display: flex; flex-direction: column; gap: 14px;">
@@ -548,6 +601,14 @@ export function renderMainDashboard(container) {
   if (lineGradeSelect) {
     lineGradeSelect.onchange = (e) => {
       state.dashboard.lineGrade = e.target.value;
+      updateLineChartData();
+    };
+  }
+
+  const lineEntitySelect = document.getElementById("line-entity-select");
+  if (lineEntitySelect) {
+    lineEntitySelect.onchange = (e) => {
+      state.dashboard.lineEntity = e.target.value;
       updateLineChartData();
     };
   }
@@ -1046,14 +1107,40 @@ export async function updateLineChartData() {
   let assigned = "";
   
   const role = state.currentUser ? state.currentUser.role : 6;
+  const entityVal = state.dashboard.lineEntity || "ALL";
+
   if (role === 1 || role === 2) {
     scope = "unit";
     assigned = state.currentUser.unitName;
   } else if (role === 3 || role === 4) {
-    scope = "brigade";
-    assigned = state.currentUser.unitName;
+    const userBde = state.currentUser.assigned || state.currentUser.scopeBde;
+    if (entityVal === "ALL") {
+      scope = "brigade";
+      assigned = userBde;
+    } else if (entityVal === "HQ") {
+      scope = "unit";
+      assigned = userBde;
+    } else if (entityVal.startsWith("unit:")) {
+      scope = "unit";
+      assigned = entityVal.substring(5);
+    } else {
+      scope = "brigade";
+      assigned = userBde;
+    }
   } else {
-    scope = "division";
+    if (entityVal === "ALL") {
+      scope = "division";
+      assigned = "";
+    } else if (entityVal.startsWith("brigade:")) {
+      scope = "brigade";
+      assigned = entityVal.substring(8);
+    } else if (entityVal.startsWith("unit:")) {
+      scope = "unit";
+      assigned = entityVal.substring(5);
+    } else {
+      scope = "division";
+      assigned = "";
+    }
   }
   
   try {

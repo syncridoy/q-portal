@@ -635,14 +635,13 @@ def get_pol_summary():
     scope = request.args.get("scope", "division")
     assigned = request.args.get("assigned", "")
     
-    # Check if we should fall back to mock data
+    # Return all zeros for other years (such as 2026-27) as requested
     if year not in ['2024-25', '2025-26']:
-        mock_data = LINE_MOCK_DATA.get(year, {}).get(grade, {})
         return jsonify({
-            "altData": mock_data.get("altData", []),
-            "data": mock_data.get("data", []),
-            "alt": mock_data.get("alt", 0.0),
-            "total": mock_data.get("total", 0.0)
+            "altData": [0.0] * 12,
+            "data": [0.0] * 12,
+            "alt": 0.0,
+            "total": 0.0
         })
         
     conn = get_db()

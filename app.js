@@ -53,6 +53,14 @@ export function initDashboard(preserveTab = false) {
 
   if (state.dashboard) {
     state.dashboard.lineChartData = null;
+    state.dashboard.lineEntity = "ALL";
+  } else {
+    state.dashboard = {
+      donutVehicle: "Jeep",
+      lineYear: "2025-26",
+      lineGrade: "Diesel",
+      lineEntity: "ALL"
+    };
   }
 
   // Reset active tab key when initializing dashboard unless preserveTab is set
