@@ -100,7 +100,7 @@ export function initDashboard(preserveTab = false) {
 
   let formattedFullName = state.currentUser.fullName || "";
   const activeYear = state.dashboard ? state.dashboard.lineYear : "2025-26";
-  if (activeYear !== "2026-27") {
+  if (activeYear === "2024-25") {
     formattedFullName = formattedFullName
       .replace("5 BIR (Sp Bn)", "19 E Bengal (Sp Bn)")
       .replace("৫ বীর (সাপোর্ট ব্যাটেলিয়ন)", "১৯ ই বেঙ্গল (সাপোর্ট ব্যাটেলিয়ন)")
@@ -109,8 +109,16 @@ export function initDashboard(preserveTab = false) {
   } else {
     if (state.language === "bn") {
       formattedFullName = formattedFullName
+        .replace("19 E Bengal (Sp Bn)", "৫ বীর (সাপোর্ট ব্যাটেলিয়ন)")
+        .replace("১৯ ই বেঙ্গল (সাপোর্ট ব্যাটেলিয়ন)", "৫ বীর (সাপোর্ট ব্যাটেলিয়ন)")
+        .replace("19 E Bengal", "৫ বীর")
+        .replace("১৯ ই বেঙ্গল", "৫ বীর")
         .replace("5 BIR (Sp Bn)", "৫ বীর (সাপোর্ট ব্যাটেলিয়ন)")
         .replace("5 BIR", "৫ বীর");
+    } else {
+      formattedFullName = formattedFullName
+        .replace("19 E Bengal (Sp Bn)", "5 BIR (Sp Bn)")
+        .replace("19 E Bengal", "5 BIR");
     }
   }
   const nameEl = document.getElementById("header-user-name");

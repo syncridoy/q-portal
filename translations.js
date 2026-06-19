@@ -149,8 +149,8 @@ export const TRANSLATIONS = {
     row_cook_m: "Cook (M)",
     row_cook_u: "Cook (U)",
     row_nce: "NC (E)",
-    lbl_total_alt: "Total Alt",
-    lbl_total_exp: "Total Exp",
+    lbl_total_alt: "Allocation\nTotal\navg",
+    lbl_total_exp: "Expenditure\nTotal\navg",
     lbl_last_month_exp: "Last Month Exp"
   },
   bn: {
@@ -300,8 +300,8 @@ export const TRANSLATIONS = {
     row_cook_m: "কুক (মেস)",
     row_cook_u: "কুক (ইউনিট)",
     row_nce: "এনসি (ই)",
-    lbl_total_alt: "মোট বরাদ্দ",
-    lbl_total_exp: "মোট খরচ",
+    lbl_total_alt: "বরাদ্দ\nমোট\nগড়",
+    lbl_total_exp: "ব্যয়\nমোট\nগড়",
     lbl_last_month_exp: "গত মাসের ব্যয়"
   }
 };

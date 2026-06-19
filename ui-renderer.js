@@ -25,15 +25,14 @@ export function getDisplayNameForUnit(unitName, year) {
   const activeYear = year || (state.dashboard ? state.dashboard.lineYear : "2025-26");
   const isBn = state.language === "bn";
   if (unitName === "5 BIR (Sp Bn)" || unitName === "19 E Bengal (Sp Bn)") {
-    if (activeYear === "2026-27") {
-      if (unitName === "5 BIR (Sp Bn)") {
-        return isBn ? "৫ বীর (সাপোর্ট ব্যাটেলিয়ন)" : "5 BIR (Sp Bn)";
-      } else {
-        return isBn ? "১৯ ই বেঙ্গল (সাপোর্ট ব্যাটেলিয়ন)" : "19 E Bengal (Sp Bn)";
-      }
-    } else {
+    if (activeYear === "2024-25") {
       return isBn ? "১৯ ই বেঙ্গল (সাপোর্ট ব্যাটেলিয়ন)" : "19 E Bengal (Sp Bn)";
+    } else {
+      return isBn ? "৫ বীর (সাপোর্ট ব্যাটেলিয়ন)" : "5 BIR (Sp Bn)";
     }
+  }
+  if (unitName === "9 Bengal Lancers" || unitName === "9 Bengal Lancer") {
+    return isBn ? "৯ বেঙ্গল ল্যান্সার" : "9 Bengal Lancer";
   }
   return unitName;
 }
@@ -285,7 +284,10 @@ function populateEntitySelectOptions(role) {
     const bde = state.currentUser.assigned || state.currentUser.scopeBde;
     const units = BRIGADES[bde] || [];
     
-    const allLabel = isBn ? "সকল ইউনিট (ব্রিগেড সামগ্রিক)" : "All Units (Brigade Aggregate)";
+    let allLabel = bde;
+    if (isBn) {
+      allLabel = bde.replace("HQ", "সদর").replace("Arty Bde", "আর্টিলারি").replace("Inf Bde", "পদাতিক").replace("Inf Div (Direct)", " পদাতিক ডিভিশন (সরাসরি)");
+    }
     const hqLabel = isBn ? `ব্রিগেড সদর দপ্তর (${bde})` : `Brigade HQ (${bde})`;
     
     html += `<option value="ALL" ${selectedEntity === "ALL" ? "selected" : ""}>${allLabel}</option>`;
@@ -295,15 +297,16 @@ function populateEntitySelectOptions(role) {
       html += `<option value="unit:${u}" ${selectedEntity === `unit:${u}` ? "selected" : ""}>${getDisplayNameForUnit(u)}</option>`;
     });
   } else if (role === 5 || role === 6) {
-    const allLabel = isBn ? "সকল ইউনিট (ডিভিশন সামগ্রিক)" : "All Units (Division Aggregate)";
+    const allLabel = isBn ? "HQ 55 Inf Div" : "HQ 55 Inf Div";
     html += `<option value="ALL" ${selectedEntity === "ALL" ? "selected" : ""}>${allLabel}</option>`;
     
     const bdeGroupLabel = isBn ? "ব্রিগেড / গ্রুপ সমূহ" : "Brigades / Groups";
     html += `<optgroup label="${bdeGroupLabel}">`;
     Object.keys(BRIGADES).forEach(bde => {
+      if (bde === "HQ 55 Inf Div (Direct)") return;
       let bdeLabel = bde;
       if (isBn) {
-        bdeLabel = bde.replace("HQ", "সদর").replace("Arty Bde", "আর্টিলারি").replace("Inf Bde", "পদাতিক").replace("Inf Div (Direct)", " পদাতিক ডিভিশন (সরাসরি)");
+        bdeLabel = bde.replace("HQ", "সদর").replace("Arty Bde", "আর্টিলারি").replace("Inf Bde", "পদাতিক");
       }
       html += `<option value="brigade:${bde}" ${selectedEntity === `brigade:${bde}` ? "selected" : ""}>${bdeLabel}</option>`;
     });
@@ -311,8 +314,8 @@ function populateEntitySelectOptions(role) {
     
     const unitGroupLabel = isBn ? "ইউনিট সমূহ" : "Individual Units";
     html += `<optgroup label="${unitGroupLabel}">`;
-    ALL_UNITS_LIST.forEach(unitObj => {
-      const u = unitObj.name;
+    const directUnits = BRIGADES["HQ 55 Inf Div (Direct)"] || [];
+    directUnits.forEach(u => {
       html += `<option value="unit:${u}" ${selectedEntity === `unit:${u}` ? "selected" : ""}>${getDisplayNameForUnit(u)}</option>`;
     });
     html += `</optgroup>`;
@@ -471,7 +474,7 @@ export function renderMainDashboard(container) {
             </div>
             ${[3, 4, 5, 6].includes(Number(role)) ? `
             <div class="card-header-row" style="margin-bottom: 12px; justify-content: flex-start;">
-              <select id="line-entity-select" class="mini-dropdown" style="width: 100%; max-width: 250px;">
+              <select id="line-entity-select" class="mini-dropdown" style="width: auto; max-width: 180px;">
                 ${populateEntitySelectOptions(role)}
               </select>
             </div>
@@ -480,11 +483,11 @@ export function renderMainDashboard(container) {
               <!-- Left side stats -->
               <div style="flex: 0 0 160px; display: flex; flex-direction: column; gap: 14px;">
                 <div>
-                  <span style="font-size: 11px; font-weight: 600; color: #64748b; display: block;" data-translate="lbl_total_alt">${t("lbl_total_alt")}</span>
+                  <span style="font-size: 11px; font-weight: 600; color: #64748b; display: block; white-space: pre-line; line-height: 1.3;" data-translate="lbl_total_alt">${t("lbl_total_alt")}</span>
                   <span id="total-alt-value" style="font-size: 18px; font-weight: 600; color: #3b82f6; display: block; font-family: 'Inter', sans-serif;">${formatDisplayNumber(initialLineVal.alt)}</span>
                 </div>
                 <div>
-                  <span style="font-size: 11px; font-weight: 600; color: #64748b; display: block;" data-translate="lbl_total_exp">${t("lbl_total_exp")}</span>
+                  <span style="font-size: 11px; font-weight: 600; color: #64748b; display: block; white-space: pre-line; line-height: 1.3;" data-translate="lbl_total_exp">${t("lbl_total_exp")}</span>
                   <span id="total-exp-value" style="font-size: 18px; font-weight: 600; color: #f87171; display: block; font-family: 'Inter', sans-serif;">${formatDisplayNumber(initialLineVal.total)}</span>
                 </div>
               </div>
@@ -593,6 +596,10 @@ export function renderMainDashboard(container) {
   if (lineYearSelect) {
     lineYearSelect.onchange = (e) => {
       state.dashboard.lineYear = e.target.value;
+      const lineEntitySelect = document.getElementById("line-entity-select");
+      if (lineEntitySelect) {
+        lineEntitySelect.innerHTML = populateEntitySelectOptions(role);
+      }
       updateLineChartData();
     };
   }
