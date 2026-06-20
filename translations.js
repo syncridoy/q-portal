@@ -382,7 +382,8 @@ export function convertDigitsToBengali(numberStr) {
   return numberStr.toString().replace(/[0-9]/g, digit => bnDigits[digit]);
 }
 
-export function formatIndianNumber(num) {
+export function formatPOLNumber(num) {
+  if (num === null || num === undefined || num === '') return '';
   let parts = Number(num).toFixed(3).split('.');
   let lastThree = parts[0].substring(parts[0].length - 3);
   let otherParts = parts[0].substring(0, parts[0].length - 3);
@@ -390,13 +391,40 @@ export function formatIndianNumber(num) {
     lastThree = ',' + lastThree;
   }
   let res = otherParts.replace(/\B(?=(\d{2})+(?!\d))/g, ",") + lastThree;
-  return res + (parts[1] ? '.' + parts[1] : '');
-}
-
-export function formatDisplayNumber(num) {
-  const formatted = formatIndianNumber(num);
+  const formatted = res + (parts[1] ? '.' + parts[1] : '');
   if (state.language === 'bn') {
     return convertDigitsToBengali(formatted);
   }
   return formatted;
+}
+
+export function formatQtyNumber(num) {
+  if (num === null || num === undefined || num === '') return '';
+  let val = Math.round(Number(num));
+  let str = val.toString();
+  
+  if (val >= 0 && val <= 9) {
+    str = '0' + str;
+  }
+  
+  if (val >= 1000) {
+    let lastThree = str.substring(str.length - 3);
+    let otherParts = str.substring(0, str.length - 3);
+    if (otherParts !== '') {
+      lastThree = ',' + lastThree;
+    }
+    str = otherParts.replace(/\B(?=(\d{2})+(?!\d))/g, ",") + lastThree;
+  }
+  
+  if (state.language === 'bn') {
+    return convertDigitsToBengali(str);
+  }
+  return str;
+}
+
+export function formatDisplayNumber(num, type = 'pol') {
+  if (type === 'qty') {
+    return formatQtyNumber(num);
+  }
+  return formatPOLNumber(num);
 }

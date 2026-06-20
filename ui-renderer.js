@@ -571,53 +571,53 @@ export function renderMainDashboard(container) {
                 <tbody>
                   <tr>
                     <td><span class="cell-text-wrapper">${t("row_messwaiter")}</span></td>
-                    <td><span class="cell-text-wrapper">${formatDisplayNumber(210)}</span></td>
-                    <td><span class="cell-text-wrapper">${formatDisplayNumber(194)}</span></td>
-                    <td><span class="cell-text-wrapper">${formatDisplayNumber(172)}</span></td>
-                    <td><span class="cell-text-wrapper">${formatDisplayNumber(10)}</span></td>
-                    <td><span class="cell-text-wrapper">${formatDisplayNumber(6)}</span></td>
-                    <td><span class="cell-text-wrapper">${formatDisplayNumber(6)}</span></td>
-                    <td><span class="cell-text-wrapper">${formatDisplayNumber(22)}</span></td>
+                    <td><span class="cell-text-wrapper"></span></td>
+                    <td><span class="cell-text-wrapper"></span></td>
+                    <td><span class="cell-text-wrapper"></span></td>
+                    <td><span class="cell-text-wrapper"></span></td>
+                    <td><span class="cell-text-wrapper"></span></td>
+                    <td><span class="cell-text-wrapper"></span></td>
+                    <td><span class="cell-text-wrapper"></span></td>
                   </tr>
                   <tr>
                     <td><span class="cell-text-wrapper">${t("row_masalchi")}</span></td>
-                    <td><span class="cell-text-wrapper">${formatDisplayNumber(50)}</span></td>
-                    <td><span class="cell-text-wrapper">${formatDisplayNumber(45)}</span></td>
-                    <td><span class="cell-text-wrapper">${formatDisplayNumber(39)}</span></td>
-                    <td><span class="cell-text-wrapper">${formatDisplayNumber(3)}</span></td>
-                    <td><span class="cell-text-wrapper">${formatDisplayNumber(1)}</span></td>
-                    <td><span class="cell-text-wrapper">${formatDisplayNumber(2)}</span></td>
-                    <td><span class="cell-text-wrapper">${formatDisplayNumber(6)}</span></td>
+                    <td><span class="cell-text-wrapper"></span></td>
+                    <td><span class="cell-text-wrapper"></span></td>
+                    <td><span class="cell-text-wrapper"></span></td>
+                    <td><span class="cell-text-wrapper"></span></td>
+                    <td><span class="cell-text-wrapper"></span></td>
+                    <td><span class="cell-text-wrapper"></span></td>
+                    <td><span class="cell-text-wrapper"></span></td>
                   </tr>
                   <tr>
                     <td><span class="cell-text-wrapper">${t("row_cook_m")}</span></td>
-                    <td><span class="cell-text-wrapper">${formatDisplayNumber(60)}</span></td>
-                    <td><span class="cell-text-wrapper">${formatDisplayNumber(52)}</span></td>
-                    <td><span class="cell-text-wrapper">${formatDisplayNumber(46)}</span></td>
-                    <td><span class="cell-text-wrapper">${formatDisplayNumber(3)}</span></td>
-                    <td><span class="cell-text-wrapper">${formatDisplayNumber(1)}</span></td>
-                    <td><span class="cell-text-wrapper">${formatDisplayNumber(2)}</span></td>
-                    <td><span class="cell-text-wrapper">${formatDisplayNumber(6)}</span></td>
+                    <td><span class="cell-text-wrapper"></span></td>
+                    <td><span class="cell-text-wrapper"></span></td>
+                    <td><span class="cell-text-wrapper"></span></td>
+                    <td><span class="cell-text-wrapper"></span></td>
+                    <td><span class="cell-text-wrapper"></span></td>
+                    <td><span class="cell-text-wrapper"></span></td>
+                    <td><span class="cell-text-wrapper"></span></td>
                   </tr>
                   <tr>
                     <td><span class="cell-text-wrapper">${t("row_cook_u")}</span></td>
-                    <td><span class="cell-text-wrapper">${formatDisplayNumber(55)}</span></td>
-                    <td><span class="cell-text-wrapper">${formatDisplayNumber(48)}</span></td>
-                    <td><span class="cell-text-wrapper">${formatDisplayNumber(42)}</span></td>
-                    <td><span class="cell-text-wrapper">${formatDisplayNumber(3)}</span></td>
-                    <td><span class="cell-text-wrapper">${formatDisplayNumber(1)}</span></td>
-                    <td><span class="cell-text-wrapper">${formatDisplayNumber(2)}</span></td>
-                    <td><span class="cell-text-wrapper">${formatDisplayNumber(6)}</span></td>
+                    <td><span class="cell-text-wrapper"></span></td>
+                    <td><span class="cell-text-wrapper"></span></td>
+                    <td><span class="cell-text-wrapper"></span></td>
+                    <td><span class="cell-text-wrapper"></span></td>
+                    <td><span class="cell-text-wrapper"></span></td>
+                    <td><span class="cell-text-wrapper"></span></td>
+                    <td><span class="cell-text-wrapper"></span></td>
                   </tr>
                   <tr>
                     <td><span class="cell-text-wrapper">${t("row_nce")}</span></td>
-                    <td><span class="cell-text-wrapper">${formatDisplayNumber(40)}</span></td>
-                    <td><span class="cell-text-wrapper">${formatDisplayNumber(35)}</span></td>
-                    <td><span class="cell-text-wrapper">${formatDisplayNumber(30)}</span></td>
-                    <td><span class="cell-text-wrapper">${formatDisplayNumber(2)}</span></td>
-                    <td><span class="cell-text-wrapper">${formatDisplayNumber(1)}</span></td>
-                    <td><span class="cell-text-wrapper">${formatDisplayNumber(2)}</span></td>
-                    <td><span class="cell-text-wrapper">${formatDisplayNumber(5)}</span></td>
+                    <td><span class="cell-text-wrapper"></span></td>
+                    <td><span class="cell-text-wrapper"></span></td>
+                    <td><span class="cell-text-wrapper"></span></td>
+                    <td><span class="cell-text-wrapper"></span></td>
+                    <td><span class="cell-text-wrapper"></span></td>
+                    <td><span class="cell-text-wrapper"></span></td>
+                    <td><span class="cell-text-wrapper"></span></td>
                   </tr>
                 </tbody>
               </table>
@@ -646,12 +646,12 @@ export function renderMainDashboard(container) {
                 </thead>
                 <tbody>
                   <tr>
-                    <td><span class="cell-text-wrapper">${formatDisplayNumber(28)}</span></td>
-                    <td><span class="cell-text-wrapper">${formatDisplayNumber(24)}</span></td>
-                    <td><span class="cell-text-wrapper">${formatDisplayNumber(2)}</span></td>
-                    <td><span class="cell-text-wrapper">${formatDisplayNumber(1)}</span></td>
-                    <td><span class="cell-text-wrapper">${formatDisplayNumber(1)}</span></td>
-                    <td><span class="cell-text-wrapper">${formatDisplayNumber(4)}</span></td>
+                    <td><span class="cell-text-wrapper"></span></td>
+                    <td><span class="cell-text-wrapper"></span></td>
+                    <td><span class="cell-text-wrapper"></span></td>
+                    <td><span class="cell-text-wrapper"></span></td>
+                    <td><span class="cell-text-wrapper"></span></td>
+                    <td><span class="cell-text-wrapper"></span></td>
                   </tr>
                 </tbody>
               </table>
@@ -726,11 +726,11 @@ export function renderDashboardContent() {
     Object.entries(aggregates.brigades).forEach(([bdeName, stats]) => {
       const row = document.createElement("tr");
       row.innerHTML = `
-        <td><strong>${bdeName}</strong></td>
-        <td>${stats.vAvail} / ${stats.vTotal} <span class="badge ${stats.vAvail/stats.vTotal > 0.75 ? "badge-success" : "badge-warning"}">${Math.round(stats.vAvail/stats.vTotal*100)}%</span></td>
-        <td>${stats.pol.toLocaleString()} L</td>
-        <td>${stats.cook + stats.waiter}</td>
-        <td><strong>${stats.strength.toLocaleString()}</strong></td>
+        <td><span class="cell-text-wrapper"><strong>${bdeName}</strong></span></td>
+        <td><span class="cell-text-wrapper">${formatDisplayNumber(stats.vAvail, 'qty')} / ${formatDisplayNumber(stats.vTotal, 'qty')} <span class="badge ${stats.vAvail/stats.vTotal > 0.75 ? "badge-success" : "badge-warning"}">${Math.round(stats.vAvail/stats.vTotal*100)}%</span></span></td>
+        <td><span class="cell-text-wrapper">${formatDisplayNumber(stats.pol)} L</span></td>
+        <td><span class="cell-text-wrapper">${formatDisplayNumber(stats.cook + stats.waiter, 'qty')}</span></td>
+        <td><span class="cell-text-wrapper"><strong>${formatDisplayNumber(stats.strength, 'qty')}</strong></span></td>
       `;
       tableBody.appendChild(row);
     });
@@ -957,15 +957,17 @@ export function renderUnitsManagementTable() {
     const hasEditPermission = checkWriteAccess(unit);
 
     row.innerHTML = `
-      <td><strong>${getDisplayNameForUnit(unit)}</strong></td>
-      <td>${stats.vAvail} / ${stats.vTotal}</td>
-      <td>${stats.pol} L</td>
-      <td>${stats.cook + stats.waiter}</td>
-      <td>${stats.strength}</td>
+      <td><span class="cell-text-wrapper"><strong>${getDisplayNameForUnit(unit)}</strong></span></td>
+      <td><span class="cell-text-wrapper">${formatDisplayNumber(stats.vAvail, 'qty')} / ${formatDisplayNumber(stats.vTotal, 'qty')}</span></td>
+      <td><span class="cell-text-wrapper">${formatDisplayNumber(stats.pol, 'pol')} L</span></td>
+      <td><span class="cell-text-wrapper">${formatDisplayNumber(stats.cook + stats.waiter, 'qty')}</span></td>
+      <td><span class="cell-text-wrapper">${formatDisplayNumber(stats.strength, 'qty')}</span></td>
       <td>
-        <button class="btn-toggle" style="padding: 4px 8px; font-size:11px;" onclick="selectUnitForEditing('${unit}')">
-          ${hasEditPermission ? (state.language === "en" ? "Update" : "আপডেট") : (state.language === "en" ? "View" : "বিস্তারিত")}
-        </button>
+        <span class="cell-text-wrapper">
+          <button class="btn-toggle" style="padding: 4px 8px; font-size:11px;" onclick="selectUnitForEditing('${unit}')">
+            ${hasEditPermission ? (state.language === "en" ? "Update" : "আপডেট") : (state.language === "en" ? "View" : "বিস্তারিত")}
+          </button>
+        </span>
       </td>
     `;
     tableBody.appendChild(row);
