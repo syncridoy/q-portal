@@ -12,14 +12,10 @@ export function initDonutChart() {
     const donutCtx = donutCanvas.getContext("2d");
     const donutVal = DONUT_MOCK_DATA[state.dashboard.donutVehicle || "Jeep"];
 
-    // Update centered text overlay values
-    const centerValEl = document.getElementById("donut-center-val");
-    if (centerValEl) {
-      centerValEl.innerText = state.language === 'bn' ? convertDigitsToBengali(donutVal.held) : donutVal.held;
-    }
-    const centerLblEl = document.getElementById("donut-center-label");
-    if (centerLblEl) {
-      centerLblEl.innerText = TRANSLATIONS[state.language]["card_title_held"] || "Held";
+    // Update header text value
+    const headerValEl = document.getElementById("donut-header-held-val");
+    if (headerValEl) {
+      headerValEl.innerText = state.language === 'bn' ? convertDigitsToBengali(donutVal.held) : donutVal.held;
     }
 
     state.charts.donut = new Chart(donutCtx, {
@@ -40,7 +36,7 @@ export function initDonutChart() {
       options: {
         responsive: true,
         maintainAspectRatio: false,
-        cutout: '70%',
+        cutout: '55%',
         plugins: {
           legend: {
             position: 'left',
@@ -369,16 +365,12 @@ window.addEventListener("languagechange", (e) => {
     state.charts.line.update();
   }
 
-  // Update donut chart center label
+  // Update donut chart header label
   if (state.charts.donut) {
     const donutVal = DONUT_MOCK_DATA[state.dashboard.donutVehicle || "Jeep"];
-    const centerValEl = document.getElementById("donut-center-val");
-    if (centerValEl) {
-      centerValEl.innerText = lang === 'bn' ? convertDigitsToBengali(donutVal.held) : donutVal.held;
-    }
-    const centerLblEl = document.getElementById("donut-center-label");
-    if (centerLblEl) {
-      centerLblEl.innerText = TRANSLATIONS[lang]["card_title_held"] || "Held";
+    const headerValEl = document.getElementById("donut-header-held-val");
+    if (headerValEl) {
+      headerValEl.innerText = lang === 'bn' ? convertDigitsToBengali(donutVal.held) : donutVal.held;
     }
     state.charts.donut.update();
   }

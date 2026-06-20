@@ -2424,6 +2424,7 @@ body.modal-open {
 
 .dashboard-table thead:has(tr + tr) th {
   height: 30px;
+  padding: 0 4px;
 }
 
 .dashboard-table thead:has(tr + tr) th[rowspan="2"] {
@@ -2460,23 +2461,22 @@ body.modal-open {
 
 .dashboard-row-1 .dashboard-table th:first-child,
 .dashboard-row-1 .dashboard-table td:first-child {
-  width: 18% !important;
-  text-align: left !important;
-  padding-left: 12px !important;
+  width: 14% !important;
+  text-align: center !important;
 }
 
 .dashboard-row-3 .dashboard-card:first-child .dashboard-table th:first-child,
 .dashboard-row-3 .dashboard-card:first-child .dashboard-table td:first-child {
   width: 20% !important;
-  text-align: left !important;
-  padding-left: 12px !important;
+  text-align: center !important;
 }
 
 .dashboard-row-3 .dashboard-card:last-child .dashboard-table th:first-child,
-.dashboard-row-3 .dashboard-card:last-child .dashboard-table td:first-child {
-  width: 25% !important;
-  text-align: left !important;
-  padding-left: 12px !important;
+.dashboard-row-3 .dashboard-card:last-child .dashboard-table td:first-child,
+.dashboard-row-3 .dashboard-card:last-child .dashboard-table thead tr:first-child th:nth-child(2),
+.dashboard-row-3 .dashboard-card:last-child .dashboard-table td:nth-child(2) {
+  width: 18% !important;
+  text-align: center !important;
 }
 
 /* Soft alternating pastel row stripes */

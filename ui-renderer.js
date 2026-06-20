@@ -426,8 +426,11 @@ export function renderMainDashboard(container) {
 
           <!-- Card 2: Held Donut Chart -->
           <div class="dashboard-card">
-            <div class="card-header-row">
-              <h4 class="card-header-title">${t("card_title_held")}</h4>
+            <div class="card-header-row" style="align-items: flex-start; margin-bottom: 0;">
+              <div style="display: flex; flex-direction: column; gap: 2px;">
+                <h4 class="card-header-title">${t("card_title_held")}</h4>
+                <span id="donut-header-held-val" style="font-size: 20px; font-weight: 800; color: #1e293b; line-height: 1.1;"></span>
+              </div>
               <select id="donut-vehicle-select" class="mini-dropdown">
                 <option value="Jeep" ${state.dashboard.donutVehicle === "Jeep" ? "selected" : ""}>Jeep</option>
                 <option value="pickup" ${state.dashboard.donutVehicle === "pickup" ? "selected" : ""}>pickup</option>
@@ -436,10 +439,6 @@ export function renderMainDashboard(container) {
             </div>
             <div style="position: relative; width: 100%; height: 160px; display: flex; align-items: center; justify-content: center; margin-top: 10px;">
               <canvas id="held-donut-chart"></canvas>
-              <div style="position: absolute; display: flex; flex-direction: column; align-items: center; justify-content: center; pointer-events: none; text-align: center; z-index: 10;">
-                <span id="donut-center-label" style="font-size: 10px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">${t("card_title_held")}</span>
-                <span id="donut-center-val" style="font-size: 24px; font-weight: 800; color: #1e293b; line-height: 1.1;">180</span>
-              </div>
             </div>
           </div>
         </div>
@@ -633,7 +632,7 @@ export function renderMainDashboard(container) {
               <table class="dashboard-table">
                 <thead>
                   <tr>
-                    <th rowspan="2"><span class="cell-text-wrapper">${state.language === "bn" ? "মোট (Tottal)" : "Tottal"}</span></th>
+                    <th rowspan="2"><span class="cell-text-wrapper">${state.language === "bn" ? "মোট (Total)" : "Total"}</span></th>
                     <th rowspan="2"><span class="cell-text-wrapper">${t("th_present")}</span></th>
                     <th colspan="4"><span class="cell-text-wrapper">${t("th_absent")}</span></th>
                   </tr>
@@ -702,6 +701,7 @@ export function renderMainDashboard(container) {
 
   // Initialize charts and load data asynchronously
   updateLineChartData();
+  initDonutChart();
 }
 
 export function renderDashboardContent() {
