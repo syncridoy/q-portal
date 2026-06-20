@@ -59,7 +59,7 @@ export function getDisplayNameForUnit(unitName, year) {
       "145 Fd Wksp Coy EME": "১৪৫ ফিল্ড ওয়ার্কশপ কোঃ ইএম‌ই",
       "55 MP Unit": "৫৫ এমপি ইউনিট",
       "55 FIU": "৫৫ এফআইইউ",
-      "HQ Coy 55 Inf Div": "সদর দপ্তর কোঃ ৫৫ পদাতিক ডিভিশন",
+      "HQ Coy 55 Inf Div": "সদর দপ্তর কোঃ ৫৫ পদাঃ ডিভঃ",
       "Division HQ": "ডিভঃ সদর দপ্তর"
     };
     
@@ -79,6 +79,68 @@ export function getDisplayNameForUnit(unitName, year) {
   return unitName;
 }
 
+export function translateFullName(fullName) {
+  if (!fullName) return "";
+  
+  const activeYear = state.dashboard ? state.dashboard.lineYear : "2025-26";
+  
+  if (state.language !== "bn") {
+    let formatted = fullName;
+    if (activeYear === "2024-25") {
+      formatted = formatted
+        .replace("5 BIR (Sp Bn)", "19 E Bengal (Sp Bn)")
+        .replace("5 BIR", "19 E Bengal");
+    } else {
+      formatted = formatted
+        .replace("19 E Bengal (Sp Bn)", "5 BIR (Sp Bn)")
+        .replace("19 E Bengal", "5 BIR");
+    }
+    return formatted;
+  }
+  
+  if (TRANSLATIONS.bn[fullName]) {
+    return TRANSLATIONS.bn[fullName];
+  }
+  
+  const match = fullName.match(/^([^(]+)\s*\(([^)]+)\)$/);
+  if (match) {
+    const appt = match[1].trim();
+    const unit = match[2].trim();
+    const translatedAppt = t(appt);
+    const translatedUnit = getDisplayNameForUnit(unit, activeYear);
+    return `${translatedAppt} (${translatedUnit})`;
+  }
+  
+  let formatted = fullName;
+  if (activeYear === "2024-25") {
+    formatted = formatted
+      .replace("5 BIR (Sp Bn)", "19 E Bengal (Sp Bn)")
+      .replace("5 BIR", "19 E Bengal");
+  } else {
+    formatted = formatted
+      .replace("19 E Bengal (Sp Bn)", "5 BIR (Sp Bn)")
+      .replace("19 E Bengal", "5 BIR");
+  }
+  
+  const englishUnits = Object.keys(TRANSLATIONS.en).filter(k => 
+    k !== "HQ" && k !== "ALL" && k !== "OC" && k !== "QM" && k !== "Q Clk"
+  ).sort((a, b) => b.length - a.length);
+  
+  englishUnits.forEach(unit => {
+    if (formatted.includes(unit)) {
+      formatted = formatted.replace(new RegExp(unit, 'g'), getDisplayNameForUnit(unit, activeYear));
+    }
+  });
+  
+  const appts = ["OC", "QM", "Q Clk", "AAQMG", "DAQMG"];
+  appts.forEach(appt => {
+    if (formatted.includes(appt)) {
+      formatted = formatted.replace(new RegExp(appt, 'g'), t(appt));
+    }
+  });
+  
+  return formatted;
+}
 
 export function updateNavIndicator(noTransition = false) {
   const container = document.getElementById("header-nav-tabs");
@@ -1196,12 +1258,12 @@ export function renderDirectoryCards() {
       <img src="${u.avatar}" alt="Avatar" class="contact-avatar">
       <div class="contact-info">
         <span class="contact-rank">${t(u.rank)}</span>
-        <h4>${u.fullName}</h4>
+        <h4>${translateFullName(u.fullName)}</h4>
         <span class="contact-ba">${u.baNo}</span>
         <div class="contact-unit">🏢 ${getDisplayNameForUnit(targetUnit)}</div>
         <div style="font-size:11px; margin-top:2px; font-weight:600; color:var(--primary);">📞 ${u.mobile}</div>
       </div>
-      <button class="contact-call-btn" onclick="simulateCall('${u.fullName}', '${u.mobile}')" title="Call Contact">
+      <button class="contact-call-btn" onclick="simulateCall('${translateFullName(u.fullName)}', '${u.mobile}')" title="Call Contact">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
       </button>
     `;
@@ -1253,7 +1315,7 @@ export function renderRoleImpersonatorList() {
 
     btn.innerHTML = `
       <div>
-        <strong>${u.fullName}</strong><br>
+        <strong>${translateFullName(u.fullName)}</strong><br>
         <span style="font-size:10px; color: var(--text-muted)">${t("Scope:")} ${getDisplayNameForUnit(scopeText)}</span>
       </div>
       <span class="role-badge">Role-${u.role}</span>

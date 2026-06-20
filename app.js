@@ -25,7 +25,8 @@ import {
   populateDirectoryUnitFilters,
   simulateCall,
   renderRoleImpersonatorList,
-  getDisplayNameForUnit
+  getDisplayNameForUnit,
+  translateFullName
 } from './ui-renderer.js';
 
 // Define constants that need to be globally accessible by other modules in this scope
@@ -79,29 +80,7 @@ export function updateHeaderProfileInfo() {
   const rankEl = document.getElementById("header-user-rank");
   if (rankEl) rankEl.innerText = t(state.currentUser.rank);
 
-  let formattedFullName = state.currentUser.fullName || "";
-  const activeYear = state.dashboard ? state.dashboard.lineYear : "2025-26";
-  if (activeYear === "2024-25") {
-    formattedFullName = formattedFullName
-      .replace("5 BIR (Sp Bn)", "19 E Bengal (Sp Bn)")
-      .replace("৫ বীর (সাপোর্ট ব্যাটেলিয়ন)", "১৯ ই বেঙ্গল (সাপোর্ট ব্যাটেলিয়ন)")
-      .replace("5 BIR", "19 E Bengal")
-      .replace("৫ বীর", "১৯ ই বেঙ্গল");
-  } else {
-    if (state.language === "bn") {
-      formattedFullName = formattedFullName
-        .replace("19 E Bengal (Sp Bn)", "৫ বীর (সাপোর্ট ব্যাটেলিয়ন)")
-        .replace("১৯ ই বেঙ্গল (সাপোর্ট ব্যাটেলিয়ন)", "৫ বীর (সাপোর্ট ব্যাটেলিয়ন)")
-        .replace("19 E Bengal", "৫ বীর")
-        .replace("১৯ ই বেঙ্গল", "৫ বীর")
-        .replace("5 BIR (Sp Bn)", "৫ বীর (সাপোর্ট ব্যাটেলিয়ন)")
-        .replace("5 BIR", "৫ বীর");
-    } else {
-      formattedFullName = formattedFullName
-        .replace("19 E Bengal (Sp Bn)", "5 BIR (Sp Bn)")
-        .replace("19 E Bengal", "5 BIR");
-    }
-  }
+  const formattedFullName = translateFullName(state.currentUser.fullName);
   const nameEl = document.getElementById("header-user-name");
   if (nameEl) nameEl.innerText = formattedFullName;
 
@@ -207,7 +186,7 @@ async function handleLogin(e) {
       
       showToast(
         TRANSLATIONS[state.language].toast_login_success, 
-        `${user.fullName} (${user.rank}) - Role ${user.role} Active`, 
+        `${translateFullName(user.fullName)} (${t(user.rank)}) - Role ${user.role} Active`, 
         "success"
       );
 
@@ -713,7 +692,7 @@ export async function impersonateRole(username) {
       
       showToast(
         state.language === "en" ? "Identity Swapped" : "আইডেন্টিটি সুইপড",
-        `Active user: ${user.fullName} (${user.rank}) - Scope: ${user.scopeUnit || user.scopeBde || "Division HQ"}`,
+        `Active user: ${translateFullName(user.fullName)} (${t(user.rank)}) - Scope: ${getDisplayNameForUnit(user.scopeUnit || user.scopeBde || "Division HQ")}`,
         "success"
       );
 
