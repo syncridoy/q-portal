@@ -2394,28 +2394,71 @@ body.modal-open {
   border-collapse: collapse;
   text-align: center;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  table-layout: fixed; /* Strict column width lock to completely eliminate hover jiggles */
 }
 
 .dashboard-table th {
   background: rgba(226, 232, 240, 0.6);
   color: #475569;
-  font-size: 12px;
-  font-weight: 700;
+  font-size: 11px;
+  font-weight: 500; /* Uniform weight with td */
   letter-spacing: 0.5px;
   border: 1px solid rgba(226, 232, 240, 0.8);
   padding: 10px 8px;
   vertical-align: middle;
   transition: font-weight 0.2s ease, color 0.2s ease, background-color 0.2s ease;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .dashboard-table td {
   border: 1px solid rgba(226, 232, 240, 0.6);
   padding: 10px 8px;
-  font-size: 12px;
+  font-size: 11px; /* Unified same size */
   color: #334155;
   font-weight: 500;
   position: relative;
   transition: background-color 0.2s ease, border-color 0.2s ease, font-weight 0.2s ease, color 0.2s ease;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dashboard-table td strong {
+  font-size: 11px;
+  font-weight: 500; /* Override default bolding of label cell */
+}
+
+/* Precise proportional column width locks to prevent horizontal shifting/jitter */
+.pol-state-table th:first-child,
+.pol-state-table td:first-child {
+  width: 25% !important;
+}
+.pol-state-table th:not(:first-child),
+.pol-state-table td:not(:first-child) {
+  width: 25% !important;
+}
+
+.dashboard-row-1 .dashboard-table th:first-child,
+.dashboard-row-1 .dashboard-table td:first-child {
+  width: 18% !important;
+  text-align: left !important;
+  padding-left: 12px !important;
+}
+
+.dashboard-row-3 .dashboard-card:first-child .dashboard-table th:first-child,
+.dashboard-row-3 .dashboard-card:first-child .dashboard-table td:first-child {
+  width: 20% !important;
+  text-align: left !important;
+  padding-left: 12px !important;
+}
+
+.dashboard-row-3 .dashboard-card:last-child .dashboard-table th:first-child,
+.dashboard-row-3 .dashboard-card:last-child .dashboard-table td:first-child {
+  width: 25% !important;
+  text-align: left !important;
+  padding-left: 12px !important;
 }
 
 /* Soft alternating pastel row stripes */
@@ -2516,23 +2559,27 @@ body.modal-open {
 
 /* Global Table Header and Left-Header Bolding Highlight */
 .header-highlight {
+  font-weight: 600 !important; /* Semi-bold */
   color: #111827 !important;
   background: rgba(75, 127, 204, 0.06) !important;
-  text-shadow: 0.5px 0 0 currentColor;
+  text-shadow: 0.2px 0 0 currentColor; /* Subtle faux weight boost without width change */
 }
 
+/* Global Table Cell Hover text wrapper */
 .cell-text-wrapper {
   display: inline-block;
-  vertical-align: middle;
-  will-change: transform;
-  transition: transform 0.3s cubic-bezier(0.25, 1, 0.5, 1), text-shadow 0.3s ease, color 0.3s ease;
+  transition: transform 0.25s cubic-bezier(0.25, 0.8, 0.25, 1), text-shadow 0.25s ease, color 0.25s ease;
   transform-origin: center;
+  will-change: transform; /* Hardware acceleration! */
+  backface-visibility: hidden;
+  transform: translateZ(0); /* Force GPU composite layer */
 }
 
 /* Float text up and pop-out on cell focus */
 .cell-text-active-focus {
-  transform: translateY(-2px) scale(1.04);
-  text-shadow: 0 4px 8px rgba(75, 127, 204, 0.12), 0.5px 0 0 currentColor;
+  transform: translateY(-1px) scale(1.03) translateZ(0); /* Soft float and subtle scale for buttery smooth 60fps */
+  text-shadow: 0 2px 4px rgba(75, 127, 204, 0.12);
   color: #111827 !important;
+  font-weight: 600 !important; /* Semi-bold (not bold/700) */
 }
 

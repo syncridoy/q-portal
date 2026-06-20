@@ -2158,6 +2158,48 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
   });
 
+  // Helper to resolve all table headers (including rowspan/colspan) for a given body column index
+  function getHeaderCellsForColumn(table, colIndex) {
+    const headerCells = [];
+    const thead = table.querySelector("thead");
+    if (!thead) return headerCells;
+    
+    const rows = thead.rows;
+    const grid = [];
+    for (let r = 0; r < rows.length; r++) grid[r] = [];
+    
+    for (let r = 0; r < rows.length; r++) {
+      const row = rows[r];
+      let cellIdx = 0;
+      for (let c = 0; c < row.cells.length; c++) {
+        const th = row.cells[c];
+        const colspan = th.colSpan || 1;
+        const rowspan = th.rowSpan || 1;
+        
+        while (grid[r][cellIdx] !== undefined) {
+          cellIdx++;
+        }
+        
+        for (let h = 0; h < rowspan; h++) {
+          for (let w = 0; w < colspan; w++) {
+            if (grid[r + h]) {
+              grid[r + h][cellIdx + w] = th;
+            }
+          }
+        }
+        cellIdx += colspan;
+      }
+    }
+    
+    for (let r = 0; r < rows.length; r++) {
+      const th = grid[r] && grid[r][colIndex];
+      if (th && !headerCells.includes(th)) {
+        headerCells.push(th);
+      }
+    }
+    return headerCells;
+  }
+
   // --- Global Table Cell Hover Interactions (Header Bolding & Cell Text Float) ---
   document.addEventListener("mouseover", (e) => {
     const td = e.target.closest(".dashboard-table tbody td, .pol-state-table tbody td");
@@ -2175,18 +2217,21 @@ document.addEventListener("DOMContentLoaded", async () => {
       leftHeader.classList.add("header-highlight");
     }
     
-    // 2. Highlight top header (th at the same column index in thead)
-    const ths = table.querySelectorAll("thead th");
-    const topHeader = ths[cellIndex];
-    if (topHeader) {
-      topHeader.classList.add("header-highlight");
-    }
+    // 2. Highlight top header(s) taking colspan/rowspan into account
+    const topHeaders = getHeaderCellsForColumn(table, cellIndex);
+    topHeaders.forEach(th => th.classList.add("header-highlight"));
     
     // 3. Make the text inside float up and animate forward
-    const wrapper = td.querySelector(".cell-text-wrapper");
-    if (wrapper) {
-      wrapper.classList.add("cell-text-active-focus");
+    let wrapper = td.querySelector(".cell-text-wrapper");
+    if (!wrapper) {
+      wrapper = document.createElement("span");
+      wrapper.className = "cell-text-wrapper";
+      wrapper.innerHTML = td.innerHTML;
+      td.innerHTML = "";
+      td.appendChild(wrapper);
     }
+    
+    wrapper.classList.add("cell-text-active-focus");
   });
 
   document.addEventListener("mouseout", (e) => {
@@ -2205,11 +2250,8 @@ document.addEventListener("DOMContentLoaded", async () => {
       leftHeader.classList.remove("header-highlight");
     }
     
-    const ths = table.querySelectorAll("thead th");
-    const topHeader = ths[cellIndex];
-    if (topHeader) {
-      topHeader.classList.remove("header-highlight");
-    }
+    const topHeaders = getHeaderCellsForColumn(table, cellIndex);
+    topHeaders.forEach(th => th.classList.remove("header-highlight"));
     
     const wrapper = td.querySelector(".cell-text-wrapper");
     if (wrapper) {
