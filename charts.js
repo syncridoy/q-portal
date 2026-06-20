@@ -58,7 +58,7 @@ export function initDonutChart() {
                 let label = context.label || '';
                 let val = context.raw || 0;
                 if (state.language === 'bn') {
-                  label = label === 'UR' ? 'ইউআর' : (label === 'Att' ? 'সংযুক্ত' : 'উদ্বৃত্ত');
+                  label = label === 'UR' ? 'অচল' : (label === 'Att' ? 'সংযুক্ত' : 'উদ্বৃত্ত');
                   return label + ': ' + convertDigitsToBengali(val);
                 }
                 return label + ': ' + val;

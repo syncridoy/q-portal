@@ -96,7 +96,7 @@ export function initDashboard(preserveTab = false) {
 
   // Render Rank with title-case format
   const rankEl = document.getElementById("header-user-rank");
-  if (rankEl) rankEl.innerText = toTitleCase(state.currentUser.rank);
+  if (rankEl) rankEl.innerText = t(state.currentUser.rank);
 
   let formattedFullName = state.currentUser.fullName || "";
   const activeYear = state.dashboard ? state.dashboard.lineYear : "2025-26";
@@ -126,7 +126,7 @@ export function initDashboard(preserveTab = false) {
 
   // Normalize appointment to standard mixed-case/title-case format
   const apptEl = document.getElementById("header-user-appt");
-  if (apptEl) apptEl.innerText = normalizeAppointment(state.currentUser.appointment);
+  if (apptEl) apptEl.innerText = t(normalizeAppointment(state.currentUser.appointment));
 
   // Render tabs
   renderNavigationTabs();

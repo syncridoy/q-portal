@@ -24,15 +24,57 @@ function impersonateRole(...args) {
 export function getDisplayNameForUnit(unitName, year) {
   const activeYear = year || (state.dashboard ? state.dashboard.lineYear : "2025-26");
   const isBn = state.language === "bn";
+  
+  if (isBn) {
+    if (unitName === "5 BIR (Sp Bn)" || unitName === "19 E Bengal (Sp Bn)") {
+      if (activeYear === "2024-25") {
+        return "১৯ ই বেঙ্গল (ডিঃ সাপোঃ)";
+      } else {
+        return "৫ বীর (ডিঃ সাপোঃ)";
+      }
+    }
+    
+    const unitMap = {
+      "Rawshan Ara Regt Arty": "রওশন আরা রেজিঃ আর্টিঃ",
+      "8 Fd Regt Arty": "৮ ফিল্ড রেজিঃ আর্টিঃ",
+      "27 Fd Regt Arty": "২৭ ফিল্ড  রেজিঃ আর্টিঃ",
+      "Adhoc Med Bty": "এডহক মিডিঃ ব্যাটারি",
+      "10 E Bengal": "১০ ই বেংগল",
+      "20 E Bengal": "২০ ই বেংগল",
+      "2 E Bengal": "২ ই বেংগল",
+      "6 E Bengal": "৬ ই বেংগল",
+      "14 BIR": "১৪ বীর",
+      "Adhoc 34 E Bengal": "এড‌হক ৩৪ ই বেংগল",
+      "37 BIR": "৩৭ বীর",
+      "9 Bengal Lancers": "৯ বেঙ্গল ল্যান্সার",
+      "9 Bengal Lancer": "৯ বেঙ্গল ল্যান্সার",
+      "3 Engr Bn": "৩ ইঞ্জিনিয়ার ব্যাটালিয়ন",
+      "2 Sig Bn": "২ সিগনাল ব্যাটালিয়ন",
+      "31 ST Bn": "৩১  এসটি ব্যাটালিয়ন",
+      "41 Fd Amb": "৪১ ফিল্ড এ্যাম্বুলেন্স",
+      "71 Fd Amb": "৭১ ফিল্ড এ্যাম্বুলেন্স",
+      "505 DOC": "৫০৫ ডিওসি",
+      "117 Fd Wksp Coy EME": "১১৭ ফিল্ড ওয়ার্কশপ কোঃ ইএম‌ই",
+      "119 Fd Wksp Coy EME": "১১৯ ফিল্ড ওয়ার্কশপ কোঃ ইএম‌ই",
+      "145 Fd Wksp Coy EME": "১৪৫ ফিল্ড ওয়ার্কশপ কোঃ ইএম‌ই",
+      "55 MP Unit": "৫৫ এমপি ইউনিট",
+      "55 FIU": "৫৫ এফআইইউ",
+      "HQ Coy 55 Inf Div": "সদর দপ্তর কোঃ ৫৫ পদাতিক ডিভিশন",
+      "Division HQ": "ডিভঃ সদর দপ্তর"
+    };
+    
+    if (unitMap[unitName]) return unitMap[unitName];
+  }
+  
   if (unitName === "5 BIR (Sp Bn)" || unitName === "19 E Bengal (Sp Bn)") {
     if (activeYear === "2024-25") {
-      return isBn ? "১৯ ই বেঙ্গল (সাপোর্ট ব্যাটেলিয়ন)" : "19 E Bengal (Sp Bn)";
+      return "19 E Bengal (Sp Bn)";
     } else {
-      return isBn ? "৫ বীর (সাপোর্ট ব্যাটেলিয়ন)" : "5 BIR (Sp Bn)";
+      return "5 BIR (Sp Bn)";
     }
   }
   if (unitName === "9 Bengal Lancers" || unitName === "9 Bengal Lancer") {
-    return isBn ? "৯ বেঙ্গল ল্যান্সার" : "9 Bengal Lancer";
+    return "9 Bengal Lancer";
   }
   return unitName;
 }
@@ -284,11 +326,8 @@ function populateEntitySelectOptions(role) {
     const bde = state.currentUser.assigned || state.currentUser.scopeBde;
     const units = BRIGADES[bde] || [];
     
-    let allLabel = bde;
-    if (isBn) {
-      allLabel = bde.replace("HQ", "সদর").replace("Arty Bde", "আর্টিলারি").replace("Inf Bde", "পদাতিক").replace("Inf Div (Direct)", " পদাতিক ডিভিশন (সরাসরি)");
-    }
-    const hqLabel = isBn ? `ব্রিগেড সদর দপ্তর (${bde})` : `Brigade HQ (${bde})`;
+    let allLabel = isBn ? "সব" : bde;
+    const hqLabel = isBn ? "ব্রিগেড সদর দপ্তর" : `Brigade HQ (${bde})`;
     
     html += `<option value="ALL" ${selectedEntity === "ALL" ? "selected" : ""}>${allLabel}</option>`;
     html += `<option value="HQ" ${selectedEntity === "HQ" ? "selected" : ""}>${hqLabel}</option>`;
@@ -297,14 +336,17 @@ function populateEntitySelectOptions(role) {
       html += `<option value="unit:${u}" ${selectedEntity === `unit:${u}` ? "selected" : ""}>${getDisplayNameForUnit(u)}</option>`;
     });
   } else if (role === 5 || role === 6) {
-    const allLabel = isBn ? "HQ 55 Inf Div" : "HQ 55 Inf Div";
+    const allLabel = isBn ? "সব" : "ALL";
     html += `<option value="ALL" ${selectedEntity === "ALL" ? "selected" : ""}>${allLabel}</option>`;
     
     Object.keys(BRIGADES).forEach(bde => {
       if (bde === "HQ 55 Inf Div (Direct)") return;
       let bdeLabel = bde;
       if (isBn) {
-        bdeLabel = bde.replace("HQ", "সদর").replace("Arty Bde", "আর্টিলারি").replace("Inf Bde", "পদাতিক");
+        if (bde === "HQ 55 Arty Bde") bdeLabel = "সদর দপ্তর ৫৫ আর্টিলারি ব্রিগেড";
+        else if (bde === "HQ 21 Inf Bde") bdeLabel = "সদর দপ্তর ২১ পদাতিক ব্রিগেড";
+        else if (bde === "HQ 88 Inf Bde") bdeLabel = "সদর দপ্তর ৮৮ পদাতিক ব্রিগেড";
+        else if (bde === "HQ 105 Inf Bde") bdeLabel = "সদর দপ্তর ১০৫ পদাতিক ব্রিগেড";
       }
       html += `<option value="brigade:${bde}" ${selectedEntity === `brigade:${bde}` ? "selected" : ""}>${bdeLabel}</option>`;
     });
@@ -439,9 +481,9 @@ export function renderMainDashboard(container) {
                 <span id="donut-header-held-val" style="font-size: 20px; font-weight: 800; color: #1e293b; line-height: 1.1;"></span>
               </div>
               <select id="donut-vehicle-select" class="mini-dropdown">
-                <option value="Jeep" ${state.dashboard.donutVehicle === "Jeep" ? "selected" : ""}>Jeep</option>
-                <option value="pickup" ${state.dashboard.donutVehicle === "pickup" ? "selected" : ""}>pickup</option>
-                <option value="3 Ton" ${state.dashboard.donutVehicle === "3 Ton" ? "selected" : ""}>3 Ton</option>
+                <option value="Jeep" ${state.dashboard.donutVehicle === "Jeep" ? "selected" : ""}>${t("Jeep")}</option>
+                <option value="pickup" ${state.dashboard.donutVehicle === "pickup" ? "selected" : ""}>${t("pickup")}</option>
+                <option value="3 Ton" ${state.dashboard.donutVehicle === "3 Ton" ? "selected" : ""}>${t("3 Ton")}</option>
               </select>
             </div>
             <div style="position: relative; width: 100%; height: 160px; display: flex; align-items: center; justify-content: center; margin-top: 10px;">
@@ -495,14 +537,14 @@ export function renderMainDashboard(container) {
           <div class="dashboard-card">
             <div class="card-header-row" style="margin-bottom: 6px;">
               <select id="line-year-select" class="mini-dropdown">
-                <option value="2024-25" ${state.dashboard.lineYear === "2024-25" ? "selected" : ""}>2024-25</option>
-                <option value="2025-26" ${state.dashboard.lineYear === "2025-26" ? "selected" : ""}>2025-26</option>
-                <option value="2026-27" ${state.dashboard.lineYear === "2026-27" ? "selected" : ""}>2026-27</option>
+                <option value="2024-25" ${state.dashboard.lineYear === "2024-25" ? "selected" : ""}>${t("2024-25")}</option>
+                <option value="2025-26" ${state.dashboard.lineYear === "2025-26" ? "selected" : ""}>${t("2025-26")}</option>
+                <option value="2026-27" ${state.dashboard.lineYear === "2026-27" ? "selected" : ""}>${t("2026-27")}</option>
               </select>
               <select id="line-grade-select" class="mini-dropdown">
-                <option value="Diesel" ${state.dashboard.lineGrade === "Diesel" ? "selected" : ""}>Diesel</option>
-                <option value="MS-74" ${state.dashboard.lineGrade === "MS-74" ? "selected" : ""}>MS-74</option>
-                <option value="100 Octane" ${state.dashboard.lineGrade === "100 Octane" ? "selected" : ""}>100 Octane</option>
+                <option value="Diesel" ${state.dashboard.lineGrade === "Diesel" ? "selected" : ""}>${t("Diesel")}</option>
+                <option value="MS-74" ${state.dashboard.lineGrade === "MS-74" ? "selected" : ""}>${t("MS-74")}</option>
+                <option value="100 Octane" ${state.dashboard.lineGrade === "100 Octane" ? "selected" : ""}>${t("100 Octane")}</option>
               </select>
             </div>
             ${[3, 4, 5, 6].includes(Number(role)) ? `
@@ -1153,7 +1195,7 @@ export function renderDirectoryCards() {
     card.innerHTML = `
       <img src="${u.avatar}" alt="Avatar" class="contact-avatar">
       <div class="contact-info">
-        <span class="contact-rank">${u.rank}</span>
+        <span class="contact-rank">${t(u.rank)}</span>
         <h4>${u.fullName}</h4>
         <span class="contact-ba">${u.baNo}</span>
         <div class="contact-unit">🏢 ${getDisplayNameForUnit(targetUnit)}</div>
@@ -1207,12 +1249,12 @@ export function renderRoleImpersonatorList() {
     btn.className = `sim-role-btn ${state.currentUser && state.currentUser.username === u.username ? "active" : ""}`;
     
     const scopeText = u.scopeUnit || u.scopeBde || "Division HQ";
-    const labelRoleName = state.language === "en" ? u.roleName : u.roleName.replace("Unit Clerk", "ইউনিট ক্লার্ক").replace("Unit QM / OC", "ইউনিট কিউএম").replace("Brigade Clerk", "ব্রিগেড ক্লার্ক").replace("Brigade DAQMG", "ব্রিগেড ডিএকিউএমজি").replace("Division Q Clerk", "ডিভিশন কিউ ক্লার্ক").replace("Division AAQMG", "ডিভিশন এএকিউএমজি");
+    const labelRoleName = state.language === "en" ? u.roleName : u.roleName.replace("Unit Clerk", "ইউনিট করণিক").replace("Unit QM / OC", "ইউনিট কিউএম").replace("Brigade Clerk", "ব্রিগেড করণিক").replace("Brigade DAQMG", "ব্রিগেড ডিএকিউএমজি").replace("Division Q Clerk", "ডিভিশন কিউ করণিক").replace("Division AAQMG", "ডিভিশন এএকিউএমজি").replace("Division DAQMG", "ডিভিশন ডিএকিউএমজি");
 
     btn.innerHTML = `
       <div>
         <strong>${u.fullName}</strong><br>
-        <span style="font-size:10px; color: var(--text-muted)">Scope: ${getDisplayNameForUnit(scopeText)}</span>
+        <span style="font-size:10px; color: var(--text-muted)">${t("Scope:")} ${getDisplayNameForUnit(scopeText)}</span>
       </div>
       <span class="role-badge">Role-${u.role}</span>
     `;
