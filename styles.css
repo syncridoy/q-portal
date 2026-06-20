@@ -2397,6 +2397,10 @@ body.modal-open {
   table-layout: fixed; /* Strict column width lock to completely eliminate hover jiggles */
 }
 
+.dashboard-table thead tr {
+  height: 38px; /* Fixed header row height for exact pixel matching */
+}
+
 .dashboard-table th {
   background: rgba(226, 232, 240, 0.6);
   color: #475569;
@@ -2404,7 +2408,8 @@ body.modal-open {
   font-weight: 500; /* Uniform weight with td */
   letter-spacing: 0.5px;
   border: 1px solid rgba(75, 127, 204, 0.15); /* Soft themed border to match POL State */
-  padding: 10px 8px;
+  padding: 0 8px; /* Vertically centered via height and vertical-align */
+  height: 38px; /* Match header row height */
   vertical-align: middle;
   transition: font-weight 0.2s ease, color 0.2s ease, background-color 0.2s ease;
   overflow: hidden;
@@ -2467,11 +2472,11 @@ body.modal-open {
 }
 
 .dashboard-table tbody tr:nth-child(odd) {
-  background: rgba(219, 234, 254, 0.35); /* ultra-faint pastel blue */
+  background: rgba(75, 127, 204, 0.03); /* Unified ultra-faint blue/gray themed tint */
 }
 
 .dashboard-table tbody tr:nth-child(even) {
-  background: rgba(255, 237, 213, 0.35); /* ultra-faint pastel peach */
+  background: rgba(255, 255, 255, 0.5); /* Unified semi-transparent white */
 }
 
 .chart-badge {
