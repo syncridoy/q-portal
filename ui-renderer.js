@@ -331,6 +331,13 @@ export function renderMainDashboard(container) {
 
   const t = (key) => TRANSLATIONS[state.language][key] || key;
 
+  let dashboardTitleKey = "title_div_overview";
+  if (role === 1 || role === 2) {
+    dashboardTitleKey = "title_unit_overview";
+  } else if (role === 3 || role === 4) {
+    dashboardTitleKey = "title_bde_overview";
+  }
+
   // Grade translated label helper
   const getGradeLabel = (g) => {
     const gradeMap = {
@@ -348,7 +355,7 @@ export function renderMainDashboard(container) {
 
   container.innerHTML = `
     <div id="main-dashboard-content">
-      <h2 class="dashboard-title">${t("welcome_title")}</h2>
+      <h2 class="dashboard-title">${t(dashboardTitleKey)}</h2>
       <div class="dashboard-grid">
         
         <!-- ROW 1: 70% Veh State Summary Card | 30% Held Donut Chart Card -->
