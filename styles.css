@@ -2006,7 +2006,7 @@ body.auth-active .auth-container {
 
 .portal-content {
   flex: 1 !important;
-  padding: 8px 32px 16px 32px !important; /* Reduced top padding to 8px, bottom kept at 16px, horizontal at 32px */
+  padding: 0px 32px 16px 32px !important; /* Set top padding to 0px (total header-to-title distance = 8px header margin + 8px dashboard padding = 16px) */
   overflow-y: auto !important;
 }
 
@@ -2288,7 +2288,7 @@ body.modal-open {
    ========================================== */
 
 #main-dashboard-content {
-  padding: 16px 24px 24px 24px; /* Reduced top padding to 16px */
+  padding: 8px 24px 24px 24px; /* Set top padding to 8px to ensure equal vertical gap */
   background: radial-gradient(135deg, rgba(248, 250, 252, 0.4) 0%, rgba(241, 245, 249, 0.4) 100%);
   border-radius: 24px;
   min-height: 100%;
