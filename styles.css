@@ -2327,6 +2327,10 @@ body.modal-open {
   gap: 24px;
 }
 
+.dashboard-row-3 .dashboard-card:last-child {
+  align-self: center;
+}
+
 .dashboard-card {
   background: rgba(255, 255, 255, 0.5);
   backdrop-filter: blur(16px);
