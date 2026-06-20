@@ -2417,6 +2417,19 @@ body.modal-open {
   white-space: nowrap;
 }
 
+/* Multi-row headers (double-row) override: 30px per row, 60px total height */
+.dashboard-table thead:has(tr + tr) tr {
+  height: 30px;
+}
+
+.dashboard-table thead:has(tr + tr) th {
+  height: 30px;
+}
+
+.dashboard-table thead:has(tr + tr) th[rowspan="2"] {
+  height: 60px;
+}
+
 .dashboard-table td {
   border: 1px solid rgba(75, 127, 204, 0.10); /* Soft themed border with reduced opacity (0.10) for clean look */
   padding: 10px 8px;
