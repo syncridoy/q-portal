@@ -48,27 +48,8 @@ export async function initDatabases() {
   }
 }
 
-export function initDashboard(preserveTab = false) {
+export function updateHeaderProfileInfo() {
   if (!state.currentUser) return;
-
-  if (state.dashboard) {
-    state.dashboard.lineChartData = null;
-    state.dashboard.lineEntity = "ALL";
-  } else {
-    state.dashboard = {
-      donutVehicle: "Jeep",
-      lineYear: "2025-26",
-      lineGrade: "Diesel",
-      lineEntity: "ALL"
-    };
-  }
-
-  // Reset active tab key when initializing dashboard unless preserveTab is set
-  if (!preserveTab) {
-    const role = state.currentUser.role;
-    const category = getRoleCategory(role);
-    state.activeTabKey = ROLE_TABS[category][0];
-  }
 
   // Render Branding name and Logo dynamically resolving assigned unit name
   let brandName = state.currentUser.assigned || state.currentUser.assignedUnit || state.currentUser.unitName || state.currentUser.scopeUnit || state.currentUser.scopeBde || "HQ 55 Inf Div";
@@ -127,6 +108,31 @@ export function initDashboard(preserveTab = false) {
   // Normalize appointment to standard mixed-case/title-case format
   const apptEl = document.getElementById("header-user-appt");
   if (apptEl) apptEl.innerText = t(normalizeAppointment(state.currentUser.appointment));
+}
+
+export function initDashboard(preserveTab = false) {
+  if (!state.currentUser) return;
+
+  if (state.dashboard) {
+    state.dashboard.lineChartData = null;
+    state.dashboard.lineEntity = "ALL";
+  } else {
+    state.dashboard = {
+      donutVehicle: "Jeep",
+      lineYear: "2025-26",
+      lineGrade: "Diesel",
+      lineEntity: "ALL"
+    };
+  }
+
+  // Reset active tab key when initializing dashboard unless preserveTab is set
+  if (!preserveTab) {
+    const role = state.currentUser.role;
+    const category = getRoleCategory(role);
+    state.activeTabKey = ROLE_TABS[category][0];
+  }
+
+  updateHeaderProfileInfo();
 
   // Render tabs
   renderNavigationTabs();
@@ -2260,6 +2266,22 @@ document.addEventListener("DOMContentLoaded", async () => {
   });
 
   window.addEventListener("resize", () => updateNavIndicator(true));
+
+  // Handle all dashboard re-rendering and header updates when language changes
+  window.addEventListener("languagechange", () => {
+    // 1. Update persistent top header profile details (ranks, appts, brand name)
+    updateHeaderProfileInfo();
+
+    // 2. Re-render navigation tabs (to update tab names like Dashboard/Veh)
+    renderNavigationTabs();
+
+    // 3. Re-render command tree hierarchy in sidebar
+    renderHierarchyTree();
+
+    // 4. Re-render main content (to re-build dashboard widgets & tables)
+    renderPortalMainContent();
+  });
+
   switchView(state.activeView);
   setLanguage(state.language);
 });
