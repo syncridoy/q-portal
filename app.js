@@ -2183,16 +2183,10 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
     
     // 3. Make the text inside float up and animate forward
-    let wrapper = td.querySelector(".cell-text-wrapper");
-    if (!wrapper) {
-      wrapper = document.createElement("span");
-      wrapper.className = "cell-text-wrapper";
-      wrapper.innerHTML = td.innerHTML;
-      td.innerHTML = "";
-      td.appendChild(wrapper);
+    const wrapper = td.querySelector(".cell-text-wrapper");
+    if (wrapper) {
+      wrapper.classList.add("cell-text-active-focus");
     }
-    
-    wrapper.classList.add("cell-text-active-focus");
   });
 
   document.addEventListener("mouseout", (e) => {

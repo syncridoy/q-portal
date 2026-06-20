@@ -362,62 +362,62 @@ export function renderMainDashboard(container) {
               <table class="dashboard-table">
                 <thead>
                   <tr>
-                    <th rowspan="2">${t("th_type_of_veh")}</th>
-                    <th rowspan="2">${t("th_auth")}</th>
-                    <th rowspan="2">${t("th_held")}</th>
-                    <th rowspan="2">${t("th_or")}</th>
-                    <th rowspan="2">${t("th_ur")}</th>
-                    <th rowspan="2">${t("th_long_rd")}</th>
-                    <th rowspan="2">${t("th_of_rd")}</th>
-                    <th colspan="2">${t("th_att")}</th>
-                    <th colspan="2">${t("th_sur")}</th>
+                    <th rowspan="2"><span class="cell-text-wrapper">${t("th_type_of_veh")}</span></th>
+                    <th rowspan="2"><span class="cell-text-wrapper">${t("th_auth")}</span></th>
+                    <th rowspan="2"><span class="cell-text-wrapper">${t("th_held")}</span></th>
+                    <th rowspan="2"><span class="cell-text-wrapper">${t("th_or")}</span></th>
+                    <th rowspan="2"><span class="cell-text-wrapper">${t("th_ur")}</span></th>
+                    <th rowspan="2"><span class="cell-text-wrapper">${t("th_long_rd")}</span></th>
+                    <th rowspan="2"><span class="cell-text-wrapper">${t("th_of_rd")}</span></th>
+                    <th colspan="2"><span class="cell-text-wrapper">${t("th_att")}</span></th>
+                    <th colspan="2"><span class="cell-text-wrapper">${t("th_sur")}</span></th>
                   </tr>
                   <tr>
-                    <th>${t("th_long_rd")}</th>
-                    <th>${t("th_of_rd")}</th>
-                    <th>${t("th_long_rd")}</th>
-                    <th>${t("th_of_rd")}</th>
+                    <th><span class="cell-text-wrapper">${t("th_long_rd")}</span></th>
+                    <th><span class="cell-text-wrapper">${t("th_of_rd")}</span></th>
+                    <th><span class="cell-text-wrapper">${t("th_long_rd")}</span></th>
+                    <th><span class="cell-text-wrapper">${t("th_of_rd")}</span></th>
                   </tr>
                 </thead>
                 <tbody>
                   <tr>
-                    <td><strong>${t("row_jeep")}</strong></td>
-                    <td>${formatDisplayNumber(130)}</td>
-                    <td>${formatDisplayNumber(120)}</td>
-                    <td>${formatDisplayNumber(100)}</td>
-                    <td>${formatDisplayNumber(20)}</td>
-                    <td>${formatDisplayNumber(80)}</td>
-                    <td>${formatDisplayNumber(20)}</td>
-                    <td>${formatDisplayNumber(30)}</td>
-                    <td>${formatDisplayNumber(10)}</td>
-                    <td>${formatDisplayNumber(20)}</td>
-                    <td>${formatDisplayNumber(10)}</td>
+                    <td><span class="cell-text-wrapper">${t("row_jeep")}</span></td>
+                    <td><span class="cell-text-wrapper">${formatDisplayNumber(130)}</span></td>
+                    <td><span class="cell-text-wrapper">${formatDisplayNumber(120)}</span></td>
+                    <td><span class="cell-text-wrapper">${formatDisplayNumber(100)}</span></td>
+                    <td><span class="cell-text-wrapper">${formatDisplayNumber(20)}</span></td>
+                    <td><span class="cell-text-wrapper">${formatDisplayNumber(80)}</span></td>
+                    <td><span class="cell-text-wrapper">${formatDisplayNumber(20)}</span></td>
+                    <td><span class="cell-text-wrapper">${formatDisplayNumber(30)}</span></td>
+                    <td><span class="cell-text-wrapper">${formatDisplayNumber(10)}</span></td>
+                    <td><span class="cell-text-wrapper">${formatDisplayNumber(20)}</span></td>
+                    <td><span class="cell-text-wrapper">${formatDisplayNumber(10)}</span></td>
                   </tr>
                   <tr>
-                    <td><strong>${t("row_pickup")}</strong></td>
-                    <td>${formatDisplayNumber(110)}</td>
-                    <td>${formatDisplayNumber(101)}</td>
-                    <td>${formatDisplayNumber(81)}</td>
-                    <td>${formatDisplayNumber(20)}</td>
-                    <td>${formatDisplayNumber(65)}</td>
-                    <td>${formatDisplayNumber(16)}</td>
-                    <td>${formatDisplayNumber(25)}</td>
-                    <td>${formatDisplayNumber(15)}</td>
-                    <td>${formatDisplayNumber(15)}</td>
-                    <td>${formatDisplayNumber(10)}</td>
+                    <td><span class="cell-text-wrapper">${t("row_pickup")}</span></td>
+                    <td><span class="cell-text-wrapper">${formatDisplayNumber(110)}</span></td>
+                    <td><span class="cell-text-wrapper">${formatDisplayNumber(101)}</span></td>
+                    <td><span class="cell-text-wrapper">${formatDisplayNumber(81)}</span></td>
+                    <td><span class="cell-text-wrapper">${formatDisplayNumber(20)}</span></td>
+                    <td><span class="cell-text-wrapper">${formatDisplayNumber(65)}</span></td>
+                    <td><span class="cell-text-wrapper">${formatDisplayNumber(16)}</span></td>
+                    <td><span class="cell-text-wrapper">${formatDisplayNumber(25)}</span></td>
+                    <td><span class="cell-text-wrapper">${formatDisplayNumber(15)}</span></td>
+                    <td><span class="cell-text-wrapper">${formatDisplayNumber(15)}</span></td>
+                    <td><span class="cell-text-wrapper">${formatDisplayNumber(10)}</span></td>
                   </tr>
                   <tr>
-                    <td><strong>${t("row_3ton")}</strong></td>
-                    <td>${formatDisplayNumber(160)}</td>
-                    <td>${formatDisplayNumber(140)}</td>
-                    <td>${formatDisplayNumber(111)}</td>
-                    <td>${formatDisplayNumber(29)}</td>
-                    <td>${formatDisplayNumber(85)}</td>
-                    <td>${formatDisplayNumber(26)}</td>
-                    <td>${formatDisplayNumber(45)}</td>
-                    <td>${formatDisplayNumber(25)}</td>
-                    <td>${formatDisplayNumber(25)}</td>
-                    <td>${formatDisplayNumber(10)}</td>
+                    <td><span class="cell-text-wrapper">${t("row_3ton")}</span></td>
+                    <td><span class="cell-text-wrapper">${formatDisplayNumber(160)}</span></td>
+                    <td><span class="cell-text-wrapper">${formatDisplayNumber(140)}</span></td>
+                    <td><span class="cell-text-wrapper">${formatDisplayNumber(111)}</span></td>
+                    <td><span class="cell-text-wrapper">${formatDisplayNumber(29)}</span></td>
+                    <td><span class="cell-text-wrapper">${formatDisplayNumber(85)}</span></td>
+                    <td><span class="cell-text-wrapper">${formatDisplayNumber(26)}</span></td>
+                    <td><span class="cell-text-wrapper">${formatDisplayNumber(45)}</span></td>
+                    <td><span class="cell-text-wrapper">${formatDisplayNumber(25)}</span></td>
+                    <td><span class="cell-text-wrapper">${formatDisplayNumber(25)}</span></td>
+                    <td><span class="cell-text-wrapper">${formatDisplayNumber(10)}</span></td>
                   </tr>
                 </tbody>
               </table>
@@ -455,30 +455,30 @@ export function renderMainDashboard(container) {
               <table class="dashboard-table pol-state-table">
                 <thead>
                   <tr>
-                    <th>${t("th_pol_grade")}</th>
-                    <th>${t("th_alt_from_area")}</th>
-                    <th>${t("th_alt_to_bde")}</th>
-                    <th>${t("th_bal")}</th>
+                    <th><span class="cell-text-wrapper">${t("th_pol_grade")}</span></th>
+                    <th><span class="cell-text-wrapper">${t("th_alt_from_area")}</span></th>
+                    <th><span class="cell-text-wrapper">${t("th_alt_to_bde")}</span></th>
+                    <th><span class="cell-text-wrapper">${t("th_bal")}</span></th>
                   </tr>
                 </thead>
                 <tbody>
                   <tr>
-                    <td><strong>${t("row_diesel")}</strong></td>
-                    <td>${formatDisplayNumber(1292544)}</td>
-                    <td>${formatDisplayNumber(1292544)}</td>
-                    <td>${formatDisplayNumber(0)}</td>
+                    <td><span class="cell-text-wrapper">${t("row_diesel")}</span></td>
+                    <td><span class="cell-text-wrapper">${formatDisplayNumber(1292544)}</span></td>
+                    <td><span class="cell-text-wrapper">${formatDisplayNumber(1292544)}</span></td>
+                    <td><span class="cell-text-wrapper">${formatDisplayNumber(0)}</span></td>
                   </tr>
                   <tr>
-                    <td><strong>${t("row_ms74")}</strong></td>
-                    <td>${formatDisplayNumber(4737)}</td>
-                    <td>${formatDisplayNumber(4737)}</td>
-                    <td>${formatDisplayNumber(0)}</td>
+                    <td><span class="cell-text-wrapper">${t("row_ms74")}</span></td>
+                    <td><span class="cell-text-wrapper">${formatDisplayNumber(4737)}</span></td>
+                    <td><span class="cell-text-wrapper">${formatDisplayNumber(4737)}</span></td>
+                    <td><span class="cell-text-wrapper">${formatDisplayNumber(0)}</span></td>
                   </tr>
                   <tr>
-                    <td><strong>${t("row_100octane")}</strong></td>
-                    <td>${formatDisplayNumber(26685)}</td>
-                    <td>${formatDisplayNumber(26685)}</td>
-                    <td>${formatDisplayNumber(0)}</td>
+                    <td><span class="cell-text-wrapper">${t("row_100octane")}</span></td>
+                    <td><span class="cell-text-wrapper">${formatDisplayNumber(26685)}</span></td>
+                    <td><span class="cell-text-wrapper">${formatDisplayNumber(26685)}</span></td>
+                    <td><span class="cell-text-wrapper">${formatDisplayNumber(0)}</span></td>
                   </tr>
                 </tbody>
               </table>
@@ -555,69 +555,69 @@ export function renderMainDashboard(container) {
               <table class="dashboard-table">
                 <thead>
                   <tr>
-                    <th rowspan="2">${t("th_type_of_mess")}</th>
-                    <th rowspan="2">${t("th_auth")}</th>
-                    <th rowspan="2">${t("th_posted")}</th>
-                    <th rowspan="2">${t("th_present")}</th>
-                    <th colspan="4">${t("th_absent")}</th>
+                    <th rowspan="2"><span class="cell-text-wrapper">${t("th_type_of_mess")}</span></th>
+                    <th rowspan="2"><span class="cell-text-wrapper">${t("th_auth")}</span></th>
+                    <th rowspan="2"><span class="cell-text-wrapper">${t("th_posted")}</span></th>
+                    <th rowspan="2"><span class="cell-text-wrapper">${t("th_present")}</span></th>
+                    <th colspan="4"><span class="cell-text-wrapper">${t("th_absent")}</span></th>
                   </tr>
                   <tr>
-                    <th>${t("th_lve")}</th>
-                    <th>${t("th_course")}</th>
-                    <th>${t("th_att")}</th>
-                    <th>${t("th_total")}</th>
+                    <th><span class="cell-text-wrapper">${t("th_lve")}</span></th>
+                    <th><span class="cell-text-wrapper">${t("th_course")}</span></th>
+                    <th><span class="cell-text-wrapper">${t("th_att")}</span></th>
+                    <th><span class="cell-text-wrapper">${t("th_total")}</span></th>
                   </tr>
                 </thead>
                 <tbody>
                   <tr>
-                    <td><strong>${t("row_messwaiter")}</strong></td>
-                    <td>${formatDisplayNumber(210)}</td>
-                    <td>${formatDisplayNumber(194)}</td>
-                    <td>${formatDisplayNumber(172)}</td>
-                    <td>${formatDisplayNumber(10)}</td>
-                    <td>${formatDisplayNumber(6)}</td>
-                    <td>${formatDisplayNumber(6)}</td>
-                    <td>${formatDisplayNumber(22)}</td>
+                    <td><span class="cell-text-wrapper">${t("row_messwaiter")}</span></td>
+                    <td><span class="cell-text-wrapper">${formatDisplayNumber(210)}</span></td>
+                    <td><span class="cell-text-wrapper">${formatDisplayNumber(194)}</span></td>
+                    <td><span class="cell-text-wrapper">${formatDisplayNumber(172)}</span></td>
+                    <td><span class="cell-text-wrapper">${formatDisplayNumber(10)}</span></td>
+                    <td><span class="cell-text-wrapper">${formatDisplayNumber(6)}</span></td>
+                    <td><span class="cell-text-wrapper">${formatDisplayNumber(6)}</span></td>
+                    <td><span class="cell-text-wrapper">${formatDisplayNumber(22)}</span></td>
                   </tr>
                   <tr>
-                    <td><strong>${t("row_masalchi")}</strong></td>
-                    <td>${formatDisplayNumber(50)}</td>
-                    <td>${formatDisplayNumber(45)}</td>
-                    <td>${formatDisplayNumber(39)}</td>
-                    <td>${formatDisplayNumber(3)}</td>
-                    <td>${formatDisplayNumber(1)}</td>
-                    <td>${formatDisplayNumber(2)}</td>
-                    <td>${formatDisplayNumber(6)}</td>
+                    <td><span class="cell-text-wrapper">${t("row_masalchi")}</span></td>
+                    <td><span class="cell-text-wrapper">${formatDisplayNumber(50)}</span></td>
+                    <td><span class="cell-text-wrapper">${formatDisplayNumber(45)}</span></td>
+                    <td><span class="cell-text-wrapper">${formatDisplayNumber(39)}</span></td>
+                    <td><span class="cell-text-wrapper">${formatDisplayNumber(3)}</span></td>
+                    <td><span class="cell-text-wrapper">${formatDisplayNumber(1)}</span></td>
+                    <td><span class="cell-text-wrapper">${formatDisplayNumber(2)}</span></td>
+                    <td><span class="cell-text-wrapper">${formatDisplayNumber(6)}</span></td>
                   </tr>
                   <tr>
-                    <td><strong>${t("row_cook_m")}</strong></td>
-                    <td>${formatDisplayNumber(60)}</td>
-                    <td>${formatDisplayNumber(52)}</td>
-                    <td>${formatDisplayNumber(46)}</td>
-                    <td>${formatDisplayNumber(3)}</td>
-                    <td>${formatDisplayNumber(1)}</td>
-                    <td>${formatDisplayNumber(2)}</td>
-                    <td>${formatDisplayNumber(6)}</td>
+                    <td><span class="cell-text-wrapper">${t("row_cook_m")}</span></td>
+                    <td><span class="cell-text-wrapper">${formatDisplayNumber(60)}</span></td>
+                    <td><span class="cell-text-wrapper">${formatDisplayNumber(52)}</span></td>
+                    <td><span class="cell-text-wrapper">${formatDisplayNumber(46)}</span></td>
+                    <td><span class="cell-text-wrapper">${formatDisplayNumber(3)}</span></td>
+                    <td><span class="cell-text-wrapper">${formatDisplayNumber(1)}</span></td>
+                    <td><span class="cell-text-wrapper">${formatDisplayNumber(2)}</span></td>
+                    <td><span class="cell-text-wrapper">${formatDisplayNumber(6)}</span></td>
                   </tr>
                   <tr>
-                    <td><strong>${t("row_cook_u")}</strong></td>
-                    <td>${formatDisplayNumber(55)}</td>
-                    <td>${formatDisplayNumber(48)}</td>
-                    <td>${formatDisplayNumber(42)}</td>
-                    <td>${formatDisplayNumber(3)}</td>
-                    <td>${formatDisplayNumber(1)}</td>
-                    <td>${formatDisplayNumber(2)}</td>
-                    <td>${formatDisplayNumber(6)}</td>
+                    <td><span class="cell-text-wrapper">${t("row_cook_u")}</span></td>
+                    <td><span class="cell-text-wrapper">${formatDisplayNumber(55)}</span></td>
+                    <td><span class="cell-text-wrapper">${formatDisplayNumber(48)}</span></td>
+                    <td><span class="cell-text-wrapper">${formatDisplayNumber(42)}</span></td>
+                    <td><span class="cell-text-wrapper">${formatDisplayNumber(3)}</span></td>
+                    <td><span class="cell-text-wrapper">${formatDisplayNumber(1)}</span></td>
+                    <td><span class="cell-text-wrapper">${formatDisplayNumber(2)}</span></td>
+                    <td><span class="cell-text-wrapper">${formatDisplayNumber(6)}</span></td>
                   </tr>
                   <tr>
-                    <td><strong>${t("row_nce")}</strong></td>
-                    <td>${formatDisplayNumber(40)}</td>
-                    <td>${formatDisplayNumber(35)}</td>
-                    <td>${formatDisplayNumber(30)}</td>
-                    <td>${formatDisplayNumber(2)}</td>
-                    <td>${formatDisplayNumber(1)}</td>
-                    <td>${formatDisplayNumber(2)}</td>
-                    <td>${formatDisplayNumber(5)}</td>
+                    <td><span class="cell-text-wrapper">${t("row_nce")}</span></td>
+                    <td><span class="cell-text-wrapper">${formatDisplayNumber(40)}</span></td>
+                    <td><span class="cell-text-wrapper">${formatDisplayNumber(35)}</span></td>
+                    <td><span class="cell-text-wrapper">${formatDisplayNumber(30)}</span></td>
+                    <td><span class="cell-text-wrapper">${formatDisplayNumber(2)}</span></td>
+                    <td><span class="cell-text-wrapper">${formatDisplayNumber(1)}</span></td>
+                    <td><span class="cell-text-wrapper">${formatDisplayNumber(2)}</span></td>
+                    <td><span class="cell-text-wrapper">${formatDisplayNumber(5)}</span></td>
                   </tr>
                 </tbody>
               </table>
@@ -633,25 +633,25 @@ export function renderMainDashboard(container) {
               <table class="dashboard-table">
                 <thead>
                   <tr>
-                    <th rowspan="2">${state.language === "bn" ? "মোট (Tottal)" : "Tottal"}</th>
-                    <th rowspan="2">${t("th_present")}</th>
-                    <th colspan="4">${t("th_absent")}</th>
+                    <th rowspan="2"><span class="cell-text-wrapper">${state.language === "bn" ? "মোট (Tottal)" : "Tottal"}</span></th>
+                    <th rowspan="2"><span class="cell-text-wrapper">${t("th_present")}</span></th>
+                    <th colspan="4"><span class="cell-text-wrapper">${t("th_absent")}</span></th>
                   </tr>
                   <tr>
-                    <th>${t("th_lve")}</th>
-                    <th>${t("th_course")}</th>
-                    <th>${t("th_att")}</th>
-                    <th>${t("th_total")}</th>
+                    <th><span class="cell-text-wrapper">${t("th_lve")}</span></th>
+                    <th><span class="cell-text-wrapper">${t("th_course")}</span></th>
+                    <th><span class="cell-text-wrapper">${t("th_att")}</span></th>
+                    <th><span class="cell-text-wrapper">${t("th_total")}</span></th>
                   </tr>
                 </thead>
                 <tbody>
                   <tr>
-                    <td><strong>${formatDisplayNumber(28)}</strong></td>
-                    <td>${formatDisplayNumber(24)}</td>
-                    <td>${formatDisplayNumber(2)}</td>
-                    <td>${formatDisplayNumber(1)}</td>
-                    <td>${formatDisplayNumber(1)}</td>
-                    <td>${formatDisplayNumber(4)}</td>
+                    <td><span class="cell-text-wrapper">${formatDisplayNumber(28)}</span></td>
+                    <td><span class="cell-text-wrapper">${formatDisplayNumber(24)}</span></td>
+                    <td><span class="cell-text-wrapper">${formatDisplayNumber(2)}</span></td>
+                    <td><span class="cell-text-wrapper">${formatDisplayNumber(1)}</span></td>
+                    <td><span class="cell-text-wrapper">${formatDisplayNumber(1)}</span></td>
+                    <td><span class="cell-text-wrapper">${formatDisplayNumber(4)}</span></td>
                   </tr>
                 </tbody>
               </table>
