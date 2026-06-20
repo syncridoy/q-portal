@@ -608,52 +608,79 @@ export function renderMainDashboard(container) {
                     <td><span class="cell-text-wrapper"></span></td>
                     <td><span class="cell-text-wrapper"></span></td>
                   </tr>
-                  <tr>
-                    <td><span class="cell-text-wrapper">${t("row_nce")}</span></td>
-                    <td><span class="cell-text-wrapper"></span></td>
-                    <td><span class="cell-text-wrapper"></span></td>
-                    <td><span class="cell-text-wrapper"></span></td>
-                    <td><span class="cell-text-wrapper"></span></td>
-                    <td><span class="cell-text-wrapper"></span></td>
-                    <td><span class="cell-text-wrapper"></span></td>
-                    <td><span class="cell-text-wrapper"></span></td>
-                  </tr>
                 </tbody>
               </table>
             </div>
           </div>
 
-          <!-- Card 6: Bugler Summary -->
-          <div class="dashboard-card">
-            <div class="card-header-row">
-              <h4 class="card-header-title">${t("card_title_bugler_summary")}</h4>
+          <!-- Right column stack: NC (E) Summary & Bugler Summary -->
+          <div class="dashboard-row-3-right">
+            <!-- Card 5.5: NC (E) Summary -->
+            <div class="dashboard-card">
+              <div class="card-header-row">
+                <h4 class="card-header-title">${t("card_title_nce_summary")}</h4>
+              </div>
+              <div class="dashboard-table-container">
+                <table class="dashboard-table">
+                  <thead>
+                    <tr>
+                      <th rowspan="2"><span class="cell-text-wrapper">${t("th_auth")}</span></th>
+                      <th rowspan="2"><span class="cell-text-wrapper">${t("th_posted")}</span></th>
+                      <th rowspan="2"><span class="cell-text-wrapper">${t("th_present")}</span></th>
+                      <th colspan="3"><span class="cell-text-wrapper">${t("th_absent")}</span></th>
+                    </tr>
+                    <tr>
+                      <th><span class="cell-text-wrapper">${t("th_lve")}</span></th>
+                      <th><span class="cell-text-wrapper">${t("th_att")}</span></th>
+                      <th><span class="cell-text-wrapper">${t("th_total")}</span></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td><span class="cell-text-wrapper"></span></td>
+                      <td><span class="cell-text-wrapper"></span></td>
+                      <td><span class="cell-text-wrapper"></span></td>
+                      <td><span class="cell-text-wrapper"></span></td>
+                      <td><span class="cell-text-wrapper"></span></td>
+                      <td><span class="cell-text-wrapper"></span></td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
             </div>
-            <div class="dashboard-table-container">
-              <table class="dashboard-table">
-                <thead>
-                  <tr>
-                    <th rowspan="2"><span class="cell-text-wrapper">${state.language === "bn" ? "মোট (Total)" : "Total"}</span></th>
-                    <th rowspan="2"><span class="cell-text-wrapper">${t("th_present")}</span></th>
-                    <th colspan="4"><span class="cell-text-wrapper">${t("th_absent")}</span></th>
-                  </tr>
-                  <tr>
-                    <th><span class="cell-text-wrapper">${t("th_lve")}</span></th>
-                    <th><span class="cell-text-wrapper">${t("th_course")}</span></th>
-                    <th><span class="cell-text-wrapper">${t("th_att")}</span></th>
-                    <th><span class="cell-text-wrapper">${t("th_total")}</span></th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <td><span class="cell-text-wrapper"></span></td>
-                    <td><span class="cell-text-wrapper"></span></td>
-                    <td><span class="cell-text-wrapper"></span></td>
-                    <td><span class="cell-text-wrapper"></span></td>
-                    <td><span class="cell-text-wrapper"></span></td>
-                    <td><span class="cell-text-wrapper"></span></td>
-                  </tr>
-                </tbody>
-              </table>
+
+            <!-- Card 6: Bugler Summary -->
+            <div class="dashboard-card">
+              <div class="card-header-row">
+                <h4 class="card-header-title">${t("card_title_bugler_summary")}</h4>
+              </div>
+              <div class="dashboard-table-container">
+                <table class="dashboard-table">
+                  <thead>
+                    <tr>
+                      <th rowspan="2"><span class="cell-text-wrapper">${state.language === "bn" ? "মোট (Total)" : "Total"}</span></th>
+                      <th rowspan="2"><span class="cell-text-wrapper">${t("th_present")}</span></th>
+                      <th colspan="4"><span class="cell-text-wrapper">${t("th_absent")}</span></th>
+                    </tr>
+                    <tr>
+                      <th><span class="cell-text-wrapper">${t("th_lve")}</span></th>
+                      <th><span class="cell-text-wrapper">${t("th_course")}</span></th>
+                      <th><span class="cell-text-wrapper">${t("th_att")}</span></th>
+                      <th><span class="cell-text-wrapper">${t("th_total")}</span></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td><span class="cell-text-wrapper"></span></td>
+                      <td><span class="cell-text-wrapper"></span></td>
+                      <td><span class="cell-text-wrapper"></span></td>
+                      <td><span class="cell-text-wrapper"></span></td>
+                      <td><span class="cell-text-wrapper"></span></td>
+                      <td><span class="cell-text-wrapper"></span></td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
         </div>

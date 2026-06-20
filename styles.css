@@ -2327,8 +2327,11 @@ body.modal-open {
   gap: 24px;
 }
 
-.dashboard-row-3 .dashboard-card:last-child {
-  align-self: center;
+.dashboard-row-3-right {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  justify-content: center;
 }
 
 .dashboard-card {
@@ -2475,10 +2478,20 @@ body.modal-open {
   text-align: center !important;
 }
 
-.dashboard-row-3 .dashboard-card:last-child .dashboard-table th:first-child,
-.dashboard-row-3 .dashboard-card:last-child .dashboard-table td:first-child,
-.dashboard-row-3 .dashboard-card:last-child .dashboard-table thead tr:first-child th:nth-child(2),
-.dashboard-row-3 .dashboard-card:last-child .dashboard-table td:nth-child(2) {
+.dashboard-row-3-right .dashboard-card:last-child .dashboard-table th:first-child,
+.dashboard-row-3-right .dashboard-card:last-child .dashboard-table td:first-child,
+.dashboard-row-3-right .dashboard-card:last-child .dashboard-table thead tr:first-child th:nth-child(2),
+.dashboard-row-3-right .dashboard-card:last-child .dashboard-table td:nth-child(2) {
+  width: 18% !important;
+  text-align: center !important;
+}
+
+.dashboard-row-3-right .dashboard-card:first-child .dashboard-table th:first-child,
+.dashboard-row-3-right .dashboard-card:first-child .dashboard-table td:first-child,
+.dashboard-row-3-right .dashboard-card:first-child .dashboard-table thead tr:first-child th:nth-child(2),
+.dashboard-row-3-right .dashboard-card:first-child .dashboard-table td:nth-child(2),
+.dashboard-row-3-right .dashboard-card:first-child .dashboard-table thead tr:first-child th:nth-child(3),
+.dashboard-row-3-right .dashboard-card:first-child .dashboard-table td:nth-child(3) {
   width: 18% !important;
   text-align: center !important;
 }
