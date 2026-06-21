@@ -26,7 +26,11 @@ import {
   simulateCall,
   renderRoleImpersonatorList,
   getDisplayNameForUnit,
-  translateFullName
+  translateFullName,
+  openPolModal,
+  closePolModal,
+  renderPolManagementView,
+  fetchPolStateData
 } from './ui-renderer.js';
 
 // Define constants that need to be globally accessible by other modules in this scope
@@ -1593,6 +1597,8 @@ window.state = state;
 window.setLanguage = setLanguage;
 window.impersonateRole = impersonateRole;
 window.showToast = showToast;
+window.openPolModal = openPolModal;
+window.closePolModal = closePolModal;
 
 
 document.addEventListener("DOMContentLoaded", async () => {
@@ -2260,6 +2266,103 @@ document.addEventListener("DOMContentLoaded", async () => {
     // 4. Re-render main content (to re-build dashboard widgets & tables)
     renderPortalMainContent();
   });
+
+  // Bind POL Management Modal form submission
+  const polModalForm = document.getElementById("pol-modal-form");
+  if (polModalForm) {
+    polModalForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      
+      const modal = document.getElementById("pol-management-modal");
+      const action = modal.dataset.action;
+      
+      const grade = document.getElementById("pol-modal-grade").value;
+      const month = document.getElementById("pol-modal-month").value;
+      const amount = parseFloat(document.getElementById("pol-modal-amount").value);
+      
+      const role = state.currentUser ? state.currentUser.role : 1;
+      const assigned = state.currentUser ? state.currentUser.assigned : "";
+      
+      let payload = {
+        month,
+        polGrade: grade,
+        amount
+      };
+      
+      let endpoint = "";
+      
+      if (action === "DMD") {
+        endpoint = "/api/pol/demand";
+        payload.unitName = assigned;
+      } 
+      
+      else if (action === "ALT") {
+        endpoint = "/api/pol/allocate";
+        if ([5, 6].includes(Number(role))) {
+          payload.fromEntity = document.getElementById("pol-modal-source").value;
+          payload.toEntity = document.getElementById("pol-modal-target").value;
+        } else if ([3, 4].includes(Number(role))) {
+          payload.fromEntity = assigned;
+          payload.toEntity = document.getElementById("pol-modal-target").value;
+        }
+      } 
+      
+      else if (action === "EXP") {
+        endpoint = "/api/pol/expenditure";
+        payload.unitName = assigned;
+      }
+      
+      try {
+        const res = await fetch(endpoint, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify(payload)
+        });
+        const result = await res.json();
+        if (result.success) {
+          showToast(
+            state.language === "en" ? "Record Saved" : "রেকর্ড সংরক্ষিত হয়েছে",
+            state.language === "en" ? "POL database updated successfully!" : "পিওএল ডেটাবেজ সফলভাবে আপডেট করা হয়েছে!",
+            "success"
+          );
+          closePolModal();
+          
+          // Re-render and refresh views to sync data instantly
+          if (state.activeTabKey === "POL") {
+            const mainContent = document.getElementById("portal-main-content");
+            renderPolManagementView(mainContent);
+          } else if (state.activeTabKey === "Dashboard") {
+            renderPortalMainContent();
+          }
+          // Also trigger line chart data update in background
+          updateLineChartData();
+        } else {
+          showToast(
+            state.language === "en" ? "Error" : "ত্রুটি",
+            state.language === "en" ? "Failed to save record." : "রেকর্ড সংরক্ষণ করতে ব্যর্থ হয়েছে।",
+            "danger"
+          );
+        }
+      } catch (err) {
+        console.error("Failed to save POL transaction:", err);
+        showToast(
+          state.language === "en" ? "Error" : "ত্রুটি",
+          state.language === "en" ? "Connection failed." : "সংযোগ স্থাপন করতে ব্যর্থ হয়েছে।",
+          "danger"
+        );
+      }
+    });
+  }
+
+  // Bind POL modal cancel button
+  const polCancelBtn = document.getElementById("pol-modal-cancel-btn");
+  if (polCancelBtn) {
+    polCancelBtn.addEventListener("click", () => {
+      closePolModal();
+    });
+  }
 
   switchView(state.activeView);
   setLanguage(state.language);

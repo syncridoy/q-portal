@@ -365,6 +365,8 @@ export function renderPortalMainContent() {
 
   if (activeTab === "Dashboard") {
     renderMainDashboard(mainContent);
+  } else if (activeTab === "POL") {
+    renderPolManagementView(mainContent);
   } else {
     const transKey = "tab_" + activeTab.toLowerCase().replace("-", "_").replace(" ", "_");
     const tabName = TRANSLATIONS[state.language][transKey] || activeTab;
@@ -566,29 +568,14 @@ export function renderMainDashboard(container) {
                 <thead>
                   <tr>
                     <th><span class="cell-text-wrapper">${t("th_pol_grade")}</span></th>
-                    <th><span class="cell-text-wrapper">${t("th_alt_from_area")}</span></th>
-                    <th><span class="cell-text-wrapper">${t("th_alt_to_bde")}</span></th>
+                    <th><span class="cell-text-wrapper">${[5, 6].includes(Number(role)) ? t("th_alt_from_area") : t("Total Alt")}</span></th>
+                    <th><span class="cell-text-wrapper">${[5, 6].includes(Number(role)) ? t("th_alt_to_bde") : t("Total Exp")}</span></th>
                     <th><span class="cell-text-wrapper">${t("th_bal")}</span></th>
                   </tr>
                 </thead>
-                <tbody>
+                <tbody id="pol-state-table-body">
                   <tr>
-                    <td><span class="cell-text-wrapper">${t("row_diesel")}</span></td>
-                    <td><span class="cell-text-wrapper">${formatDisplayNumber(1292544)}</span></td>
-                    <td><span class="cell-text-wrapper">${formatDisplayNumber(1292544)}</span></td>
-                    <td><span class="cell-text-wrapper">${formatDisplayNumber(0)}</span></td>
-                  </tr>
-                  <tr>
-                    <td><span class="cell-text-wrapper">${t("row_ms74")}</span></td>
-                    <td><span class="cell-text-wrapper">${formatDisplayNumber(4737)}</span></td>
-                    <td><span class="cell-text-wrapper">${formatDisplayNumber(4737)}</span></td>
-                    <td><span class="cell-text-wrapper">${formatDisplayNumber(0)}</span></td>
-                  </tr>
-                  <tr>
-                    <td><span class="cell-text-wrapper">${t("row_100octane")}</span></td>
-                    <td><span class="cell-text-wrapper">${formatDisplayNumber(26685)}</span></td>
-                    <td><span class="cell-text-wrapper">${formatDisplayNumber(26685)}</span></td>
-                    <td><span class="cell-text-wrapper">${formatDisplayNumber(0)}</span></td>
+                    <td colspan="4" style="text-align: center; color: var(--text-muted);">Loading...</td>
                   </tr>
                 </tbody>
               </table>
@@ -1378,6 +1365,7 @@ export async function updateLineChartData() {
     
     updateMetricDisplayValues();
     initLineChart();
+    await fetchPolStateData();
   } catch (err) {
     console.error("Failed to load line chart data:", err);
   }
@@ -1407,4 +1395,350 @@ export function updateMetricDisplayValues() {
 
 window.addEventListener("languagechange", () => {
   updateMetricDisplayValues();
+  if (state.activeTabKey === "POL") {
+    const mainContent = document.getElementById("portal-main-content");
+    renderPolManagementView(mainContent);
+  }
+});
+
+export async function fetchPolStateData() {
+  const tableBody = document.getElementById("pol-state-table-body");
+  if (!tableBody) return;
+  
+  const role = state.currentUser ? state.currentUser.role : 6;
+  const assigned = state.currentUser ? state.currentUser.assigned : "";
+  const bde = state.currentUser ? state.currentUser.scopeBde : "";
+  const isBn = state.language === "bn";
+  const t = (key) => TRANSLATIONS[state.language][key] || key;
+  
+  try {
+    const url = `/api/pol/state?role=${role}&assigned=${encodeURIComponent(assigned)}&bde=${encodeURIComponent(bde)}`;
+    const res = await fetch(url);
+    const data = await res.json();
+    
+    tableBody.innerHTML = "";
+    data.forEach(row => {
+      const tr = document.createElement("tr");
+      const gradeKey = "row_" + row.grade.toLowerCase().replace("-", "").replace(" ", "");
+      tr.innerHTML = `
+        <td><span class="cell-text-wrapper">${t(gradeKey)}</span></td>
+        <td><span class="cell-text-wrapper">${formatDisplayNumber(row.col1)}</span></td>
+        <td><span class="cell-text-wrapper">${formatDisplayNumber(row.col2)}</span></td>
+        <td><span class="cell-text-wrapper">${formatDisplayNumber(row.bal)}</span></td>
+      `;
+      tableBody.appendChild(tr);
+    });
+  } catch (err) {
+    console.error("Failed to load POL state table data:", err);
+  }
+}
+
+export async function fetchPolDemandsLog() {
+  const logBody = document.getElementById("pol-demands-log-body");
+  if (!logBody) return;
+  
+  const role = state.currentUser ? state.currentUser.role : 6;
+  const assigned = state.currentUser ? state.currentUser.assigned : "";
+  const isBn = state.language === "bn";
+  const t = (key) => TRANSLATIONS[state.language][key] || key;
+  
+  try {
+    const url = `/api/pol/demands?role=${role}&assigned=${encodeURIComponent(assigned)}`;
+    const res = await fetch(url);
+    const data = await res.json();
+    
+    logBody.innerHTML = "";
+    if (data.length === 0) {
+      logBody.innerHTML = `
+        <tr>
+          <td colspan="5" style="text-align: center; color: var(--text-muted);">${isBn ? "কোনো চাহিদা পাওয়া যায়নি।" : "No demands found."}</td>
+        </tr>
+      `;
+      return;
+    }
+    
+    data.forEach(r => {
+      const tr = document.createElement("tr");
+      const gradeLabel = r.polGrade === "Diesel" ? (isBn ? "ডিজেল" : "Diesel") : (r.polGrade === "MS-74" ? (isBn ? "এমএস-৭৪" : "MS-74") : (isBn ? "১০০ অকটেন" : "100 Octane"));
+      const monthMap = {
+        'Jul': 'জুলাই', 'Aug': 'আগস্ট', 'Sep': 'সেপ্টেম্বর', 'Oct': 'অক্টোবর', 'Nov': 'নভেম্বর', 'Dec': 'ডিসেম্বর',
+        'Jan': 'জানুয়ারি', 'Feb': 'ফেব্রুয়ারি', 'Mar': 'মার্চ', 'Apr': 'এপ্রিল', 'May': 'মে', 'Jun': 'জুন'
+      };
+      const monthLabel = isBn ? (monthMap[r.month] || r.month) : r.month;
+      
+      const amountVal = isBn ? convertDigitsToBengali(r.amount) : r.amount;
+      const statusLabel = r.status === 'Pending' ? (isBn ? "পেন্ডিং" : "Pending") : (isBn ? "অনুমোদিত" : "Approved");
+      
+      tr.innerHTML = `
+        <td><span class="cell-text-wrapper">${getDisplayNameForUnit(r.unitName)}</span></td>
+        <td><span class="cell-text-wrapper">${gradeLabel}</span></td>
+        <td><span class="cell-text-wrapper">${monthLabel}</span></td>
+        <td><span class="cell-text-wrapper">${amountVal}</span></td>
+        <td><span class="cell-text-wrapper" style="font-weight:700; color:${r.status === 'Pending' ? '#eab308' : '#10b981'};">${statusLabel}</span></td>
+      `;
+      logBody.appendChild(tr);
+    });
+  } catch (err) {
+    console.error("Failed to load demands log:", err);
+  }
+}
+
+export function renderPolManagementView(container) {
+  const role = state.currentUser ? state.currentUser.role : 6;
+  const isBn = state.language === "bn";
+  const t = (key) => TRANSLATIONS[state.language][key] || key;
+  
+  let buttonsHtml = "";
+  if ([5, 6].includes(Number(role))) {
+    buttonsHtml = `
+      <button class="btn-primary" onclick="openPolModal('DMD')" style="background: var(--primary);"><span style="margin-right: 4px;">📋</span>${t("btn_dmd")}</button>
+      <button class="btn-primary" onclick="openPolModal('ALT')" style="background: var(--success);"><span style="margin-right: 4px;">💸</span>${t("btn_alt")}</button>
+    `;
+  } else if ([3, 4].includes(Number(role))) {
+    buttonsHtml = `
+      <button class="btn-primary" onclick="openPolModal('DMD')" style="background: var(--primary);"><span style="margin-right: 4px;">📋</span>${t("btn_dmd")}</button>
+      <button class="btn-primary" onclick="openPolModal('ALT')" style="background: var(--success);"><span style="margin-right: 4px;">💸</span>${t("btn_alt")}</button>
+      <button class="btn-primary" onclick="openPolModal('EXP')" style="background: var(--danger);"><span style="margin-right: 4px;">📉</span>${t("btn_exp")}</button>
+    `;
+  } else {
+    buttonsHtml = `
+      <button class="btn-primary" onclick="openPolModal('DMD')" style="background: var(--primary);"><span style="margin-right: 4px;">📋</span>${t("btn_dmd")}</button>
+      <button class="btn-primary" onclick="openPolModal('EXP')" style="background: var(--danger);"><span style="margin-right: 4px;">📉</span>${t("btn_exp")}</button>
+    `;
+  }
+  
+  const isDivision = [5, 6].includes(Number(role));
+  const col1Header = isDivision ? t("th_alt_from_area") : t("Total Alt");
+  const col2Header = isDivision ? t("th_alt_to_bde") : t("Total Exp");
+  
+  container.innerHTML = `
+    <div id="main-dashboard-content">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+        <h2 class="dashboard-title" style="margin-bottom: 0;">${t("tab_pol")}</h2>
+        <div style="display: flex; gap: 8px;">
+          ${buttonsHtml}
+        </div>
+      </div>
+      
+      <div class="dashboard-grid" style="grid-template-columns: 1fr 1fr; gap: 20px;">
+        <!-- Left: State of POL Card -->
+        <div class="dashboard-card" style="margin-bottom: 0;">
+          <div class="card-header-row">
+            <h4 class="card-header-title">${t("card_title_pol_state")}</h4>
+          </div>
+          <div class="dashboard-table-container">
+            <table class="dashboard-table pol-state-table">
+              <thead>
+                <tr>
+                  <th><span class="cell-text-wrapper">${t("th_pol_grade")}</span></th>
+                  <th><span class="cell-text-wrapper">${col1Header}</span></th>
+                  <th><span class="cell-text-wrapper">${col2Header}</span></th>
+                  <th><span class="cell-text-wrapper">${t("th_bal")}</span></th>
+                </tr>
+              </thead>
+              <tbody id="pol-state-table-body">
+                <tr>
+                  <td colspan="4" style="text-align: center; color: var(--text-muted);">Loading...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        
+        <!-- Right: Recent Demands & Logs -->
+        <div class="dashboard-card" style="margin-bottom: 0;">
+          <div class="card-header-row">
+            <h4 class="card-header-title">${t("pol_log_title")}</h4>
+          </div>
+          <div class="dashboard-table-container" style="max-height: 250px; overflow-y: auto;">
+            <table class="dashboard-table">
+              <thead>
+                <tr>
+                  <th><span class="cell-text-wrapper">${t("th_unit")}</span></th>
+                  <th><span class="cell-text-wrapper">${t("lbl_pol_grade")}</span></th>
+                  <th><span class="cell-text-wrapper">${t("lbl_month")}</span></th>
+                  <th><span class="cell-text-wrapper">${t("lbl_amount")}</span></th>
+                  <th><span class="cell-text-wrapper">${t("lbl_status")}</span></th>
+                </tr>
+              </thead>
+              <tbody id="pol-demands-log-body">
+                <tr>
+                  <td colspan="5" style="text-align: center; color: var(--text-muted);">Loading...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+  
+  fetchPolStateData();
+  fetchPolDemandsLog();
+}
+
+export function openPolModal(action) {
+  const modal = document.getElementById("pol-management-modal");
+  const titleEl = document.getElementById("pol-modal-title");
+  const descEl = document.getElementById("pol-modal-desc");
+  const fieldsContainer = document.getElementById("pol-modal-form-fields");
+  
+  if (!modal || !titleEl || !descEl || !fieldsContainer) return;
+  
+  const role = state.currentUser ? state.currentUser.role : 1;
+  const isBn = state.language === "bn";
+  const t = (key) => TRANSLATIONS[state.language][key] || key;
+  
+  modal.dataset.action = action;
+  fieldsContainer.innerHTML = "";
+  
+  const months = ['Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'];
+  const monthNames = {
+    'Jul': 'July / জুলাই', 'Aug': 'August / আগস্ট', 'Sep': 'September / সেপ্টেম্বর', 'Oct': 'October / অক্টোবর', 'Nov': 'November / নভেম্বর', 'Dec': 'December / ডিসেম্বর',
+    'Jan': 'January / জানুয়ারি', 'Feb': 'February / ফেব্রুয়ারি', 'Mar': 'March / মার্চ', 'Apr': 'April / এপ্রিল', 'May': 'May / মে', 'Jun': 'June / জুন'
+  };
+  const monthsOptions = months.map(m => `<option value="${m}">${monthNames[m]}</option>`).join('');
+  
+  const gradeOptions = `
+    <option value="Diesel">Diesel / ডিজেল</option>
+    <option value="MS-74">MS-74 / এমএস-৭৪</option>
+    <option value="100 Octane">100 Octane / ১০০ অকটেন</option>
+  `;
+  
+  if (action === "DMD") {
+    titleEl.innerText = t("label_demand");
+    descEl.innerText = isBn ? "রানিং মাসের জ্বালানি চাহিদা সাবমিট করুন" : "Submit fuel demand request for the active month.";
+    
+    fieldsContainer.innerHTML = `
+      <div class="floating-label-group">
+        <select id="pol-modal-grade" class="form-input" style="padding-top: 8px;">
+          ${gradeOptions}
+        </select>
+      </div>
+      <div class="floating-label-group">
+        <select id="pol-modal-month" class="form-input" style="padding-top: 8px;">
+          ${monthsOptions}
+        </select>
+      </div>
+      <div class="floating-label-group">
+        <input type="number" id="pol-modal-amount" class="form-input" placeholder=" " required min="1">
+        <label for="pol-modal-amount">${t("lbl_amount")}</label>
+      </div>
+    `;
+  } 
+  else if (action === "ALT") {
+    titleEl.innerText = t("label_allocate");
+    descEl.innerText = isBn ? "জ্বালানি বরাদ্দ এন্ট্রি করুন" : "Record a fuel allocation entry.";
+    
+    if ([5, 6].includes(Number(role))) {
+      const directUnits = BRIGADES["HQ 55 Inf Div (Direct)"] || [];
+      const brigadesList = Object.keys(BRIGADES).filter(b => b !== "HQ 55 Inf Div (Direct)");
+      
+      let unitsOptions = `<option value="HQ 55 Inf Div">Division HQ (Self Pool)</option>`;
+      brigadesList.forEach(bde => {
+        unitsOptions += `<option value="${bde}">${getDisplayNameForUnit(bde)}</option>`;
+      });
+      directUnits.forEach(unit => {
+        unitsOptions += `<option value="${unit}">${getDisplayNameForUnit(unit)}</option>`;
+      });
+      
+      fieldsContainer.innerHTML = `
+        <div class="floating-label-group">
+          <label style="position:static; font-size:11px; font-weight:600; color:var(--primary); margin-bottom:4px; display:block;">${isBn ? "উৎস পুল (Source)" : "Source Pool"}</label>
+          <select id="pol-modal-source" class="form-input" style="padding-top: 8px;">
+            <option value="Area HQ">Area HQ (এরিয়া সদর দপ্তর)</option>
+            <option value="HQ 55 Inf Div">Division HQ Pool (ডিভ সদর দপ্তর পুল)</option>
+          </select>
+        </div>
+        <div class="floating-label-group">
+          <label style="position:static; font-size:11px; font-weight:600; color:var(--primary); margin-bottom:4px; display:block;">${isBn ? "বরাদ্দ গ্রহীতা (Recipient)" : "Allocation Recipient"}</label>
+          <select id="pol-modal-target" class="form-input" style="padding-top: 8px;">
+            ${unitsOptions}
+          </select>
+        </div>
+        <div class="floating-label-group">
+          <select id="pol-modal-grade" class="form-input" style="padding-top: 8px;">
+            ${gradeOptions}
+          </select>
+        </div>
+        <div class="floating-label-group">
+          <select id="pol-modal-month" class="form-input" style="padding-top: 8px;">
+            ${monthsOptions}
+          </select>
+        </div>
+        <div class="floating-label-group">
+          <input type="number" id="pol-modal-amount" class="form-input" placeholder=" " required min="1">
+          <label for="pol-modal-amount">${t("lbl_amount")}</label>
+        </div>
+      `;
+    } 
+    else if ([3, 4].includes(Number(role))) {
+      const bde = state.currentUser.assigned || state.currentUser.scopeBde;
+      const subUnits = BRIGADES[bde] || [];
+      
+      let unitsOptions = "";
+      subUnits.forEach(unit => {
+        unitsOptions += `<option value="${unit}">${getDisplayNameForUnit(unit)}</option>`;
+      });
+      
+      fieldsContainer.innerHTML = `
+        <div class="floating-label-group">
+          <label style="position:static; font-size:11px; font-weight:600; color:var(--primary); margin-bottom:4px; display:block;">${isBn ? "বরাদ্দ গ্রহীতা (Recipient)" : "Allocation Recipient"}</label>
+          <select id="pol-modal-target" class="form-input" style="padding-top: 8px;">
+            ${unitsOptions}
+          </select>
+        </div>
+        <div class="floating-label-group">
+          <select id="pol-modal-grade" class="form-input" style="padding-top: 8px;">
+            ${gradeOptions}
+          </select>
+        </div>
+        <div class="floating-label-group">
+          <select id="pol-modal-month" class="form-input" style="padding-top: 8px;">
+            ${monthsOptions}
+          </select>
+        </div>
+        <div class="floating-label-group">
+          <input type="number" id="pol-modal-amount" class="form-input" placeholder=" " required min="1">
+          <label for="pol-modal-amount">${t("lbl_amount")}</label>
+        </div>
+      `;
+    }
+  } 
+  else if (action === "EXP") {
+    titleEl.innerText = t("label_expenditure");
+    descEl.innerText = isBn ? "জ্বালানি খরচ/ব্যয় এন্ট্রি করুন" : "Record fuel consumption/expenditure.";
+    
+    fieldsContainer.innerHTML = `
+      <div class="floating-label-group">
+        <select id="pol-modal-grade" class="form-input" style="padding-top: 8px;">
+          ${gradeOptions}
+        </select>
+      </div>
+      <div class="floating-label-group">
+        <select id="pol-modal-month" class="form-input" style="padding-top: 8px;">
+          ${monthsOptions}
+        </select>
+      </div>
+      <div class="floating-label-group">
+        <input type="number" id="pol-modal-amount" class="form-input" placeholder=" " required min="1">
+        <label for="pol-modal-amount">${t("lbl_amount")}</label>
+      </div>
+    `;
+  }
+  
+  modal.style.display = "flex";
+}
+
+export function closePolModal() {
+  const modal = document.getElementById("pol-management-modal");
+  if (modal) modal.style.display = "none";
+}
+
+window.addEventListener("languagechange", () => {
+  updateMetricDisplayValues();
+  if (state.activeTabKey === "POL") {
+    const mainContent = document.getElementById("portal-main-content");
+    renderPolManagementView(mainContent);
+  }
 });

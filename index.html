@@ -397,6 +397,25 @@
     </div>
   </div>
 
+  <!-- ================= POL MANAGEMENT MODAL ================= -->
+  <div class="modal-overlay" id="pol-management-modal" style="z-index: 1050; display: none;">
+    <div class="modal-card glass-panel animate-fade" style="max-width: 500px; width: 90%;">
+      <h3 id="pol-modal-title">POL Action</h3>
+      <p id="pol-modal-desc" style="font-size: 11px; color: var(--text-muted); margin-bottom: 16px;"></p>
+      
+      <form id="pol-modal-form" style="display: flex; flex-direction: column; gap: 16px;" onsubmit="event.preventDefault();">
+        <div id="pol-modal-form-fields" style="display: flex; flex-direction: column; gap: 16px;">
+          <!-- Dynamic fields inserted by JS -->
+        </div>
+        
+        <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 20px;">
+          <button type="button" class="btn-secondary" id="pol-modal-cancel-btn" data-translate="btn_cancel">Cancel</button>
+          <button type="submit" class="btn-primary" id="pol-modal-submit-btn">Submit</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <!-- ================= CHANGE PASSWORD MODAL ================= -->
   <div class="modal-overlay" id="change-password-modal" style="z-index: 1050;">
     <div class="modal-card glass-panel animate-fade" style="max-width: 400px; width: 90%;">

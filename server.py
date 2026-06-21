@@ -168,6 +168,19 @@ def init_db():
         )
     ''')
     
+    # Create pol_demands table
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS pol_demands (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            unit_name TEXT NOT NULL,
+            fiscal_year TEXT NOT NULL,
+            month TEXT NOT NULL,
+            pol_grade TEXT NOT NULL,
+            amount REAL NOT NULL,
+            status TEXT DEFAULT 'Pending'
+        )
+    ''')
+    
     conn.commit()
     
     # Seed users if empty
@@ -184,6 +197,35 @@ def init_db():
     cursor.execute("SELECT count(*) FROM pol_monthly_records")
     if cursor.fetchone()[0] == 0:
         seed_pol_data(conn)
+        
+    # Patch database: check if 'HQ 55 Inf Div' is in logistics
+    cursor.execute("SELECT count(*) FROM logistics WHERE unit_name = 'HQ 55 Inf Div'")
+    if cursor.fetchone()[0] == 0:
+        cursor.execute('''
+            INSERT INTO logistics (unit_name, vAvail, vTotal, pol, cook, waiter, strength)
+            VALUES (?, 0, 0, ?, 0, 0, 0)
+        ''', ('HQ 55 Inf Div', 209097))
+        conn.commit()
+
+    # Patch database: check if 'HQ 55 Inf Div' has records in pol_monthly_records
+    cursor.execute("SELECT count(*) FROM pol_monthly_records WHERE unit_name = 'HQ 55 Inf Div'")
+    if cursor.fetchone()[0] == 0:
+        div_allocations = {
+            'Diesel': 1292544.0,
+            'MS-74': 4737.0,
+            '100 Octane': 26685.0
+        }
+        for grade, amount in div_allocations.items():
+            cursor.execute('''
+                INSERT INTO pol_monthly_records (unit_name, fiscal_year, month, pol_grade, allocation, expenditure)
+                VALUES (?, ?, ?, ?, ?, ?)
+            ''', ('HQ 55 Inf Div', '2025-26', 'Jul', grade, amount, 0.0))
+            for month in ['Aug', 'Sep', 'Oct', 'Nov', 'Dec', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun']:
+                cursor.execute('''
+                    INSERT INTO pol_monthly_records (unit_name, fiscal_year, month, pol_grade, allocation, expenditure)
+                    VALUES (?, ?, ?, ?, ?, ?)
+                ''', ('HQ 55 Inf Div', '2025-26', month, grade, 0.0, 0.0))
+        conn.commit()
         
     conn.close()
 
@@ -673,7 +715,7 @@ def get_pol_summary():
             cursor.execute('''
                 SELECT SUM(allocation), SUM(expenditure) 
                 FROM pol_monthly_records 
-                WHERE fiscal_year = ? AND month = ? AND pol_grade = ?
+                WHERE fiscal_year = ? AND month = ? AND pol_grade = ? AND unit_name != 'HQ 55 Inf Div'
             ''', (year, month, grade))
         else:
             placeholders = ','.join('?' for _ in units_to_query)
@@ -701,6 +743,269 @@ def get_pol_summary():
         "alt": total_alt,
         "total": total_exp
     })
+
+@app.route('/api/pol/state', methods=['GET'])
+def get_pol_state():
+    role = int(request.args.get("role", 6))
+    assigned = request.args.get("assigned", "")
+    bde = request.args.get("bde", "")
+    
+    conn = get_db()
+    cursor = conn.cursor()
+    
+    grades = ['Diesel', 'MS-74', '100 Octane']
+    result = []
+    
+    # Division users
+    if role in [5, 6]:
+        for grade in grades:
+            # col1: Alt from Area = sum of allocations to 'HQ 55 Inf Div'
+            cursor.execute('''
+                SELECT SUM(allocation) FROM pol_monthly_records 
+                WHERE fiscal_year = '2025-26' AND pol_grade = ? AND unit_name = 'HQ 55 Inf Div'
+            ''', (grade,))
+            col1 = cursor.fetchone()[0] or 0.0
+            
+            # col2: Alt to Bde/Unit = sum of allocations to other units
+            cursor.execute('''
+                SELECT SUM(allocation) FROM pol_monthly_records 
+                WHERE fiscal_year = '2025-26' AND pol_grade = ? AND unit_name != 'HQ 55 Inf Div'
+            ''', (grade,))
+            col2 = cursor.fetchone()[0] or 0.0
+            
+            result.append({
+                "grade": grade,
+                "col1": col1,
+                "col2": col2,
+                "bal": col1 - col2
+            })
+            
+    # Brigade users
+    elif role in [3, 4]:
+        target_bde = assigned or bde
+        units_to_query = [target_bde] + BRIGADES.get(target_bde, [])
+        placeholders = ','.join('?' for _ in units_to_query)
+        
+        for grade in grades:
+            # col1: Total Alt
+            cursor.execute(f'''
+                SELECT SUM(allocation) FROM pol_monthly_records 
+                WHERE fiscal_year = '2025-26' AND pol_grade = ? AND unit_name IN ({placeholders})
+            ''', (grade, *units_to_query))
+            col1 = cursor.fetchone()[0] or 0.0
+            
+            # col2: Total Exp
+            cursor.execute(f'''
+                SELECT SUM(expenditure) FROM pol_monthly_records 
+                WHERE fiscal_year = '2025-26' AND pol_grade = ? AND unit_name IN ({placeholders})
+            ''', (grade, *units_to_query))
+            col2 = cursor.fetchone()[0] or 0.0
+            
+            result.append({
+                "grade": grade,
+                "col1": col1,
+                "col2": col2,
+                "bal": col1 - col2
+            })
+            
+    # Unit users (role 1, 2)
+    else:
+        for grade in grades:
+            # col1: Total Alt
+            cursor.execute('''
+                SELECT SUM(allocation) FROM pol_monthly_records 
+                WHERE fiscal_year = '2025-26' AND pol_grade = ? AND unit_name = ?
+            ''', (grade, assigned))
+            col1 = cursor.fetchone()[0] or 0.0
+            
+            # col2: Total Exp
+            cursor.execute('''
+                SELECT SUM(expenditure) FROM pol_monthly_records 
+                WHERE fiscal_year = '2025-26' AND pol_grade = ? AND unit_name = ?
+            ''', (grade, assigned))
+            col2 = cursor.fetchone()[0] or 0.0
+            
+            result.append({
+                "grade": grade,
+                "col1": col1,
+                "col2": col2,
+                "bal": col1 - col2
+            })
+            
+    conn.close()
+    return jsonify(result)
+
+@app.route('/api/pol/demand', methods=['POST'])
+def add_pol_demand():
+    data = request.json
+    unit_name = data.get("unitName")
+    month = data.get("month")
+    fiscal_year = data.get("fiscalYear", "2025-26")
+    pol_grade = data.get("polGrade")
+    amount = float(data.get("amount", 0))
+    
+    conn = get_db()
+    cursor = conn.cursor()
+    
+    cursor.execute('''
+        SELECT id FROM pol_demands 
+        WHERE unit_name = ? AND fiscal_year = ? AND month = ? AND pol_grade = ?
+    ''', (unit_name, fiscal_year, month, pol_grade))
+    row = cursor.fetchone()
+    
+    if row:
+        cursor.execute('''
+            UPDATE pol_demands SET amount = ?, status = 'Pending'
+            WHERE id = ?
+        ''', (amount, row[0]))
+    else:
+        cursor.execute('''
+            INSERT INTO pol_demands (unit_name, fiscal_year, month, pol_grade, amount, status)
+            VALUES (?, ?, ?, ?, ?, 'Pending')
+        ''', (unit_name, fiscal_year, month, pol_grade, amount))
+        
+    conn.commit()
+    conn.close()
+    return jsonify({"success": True})
+
+@app.route('/api/pol/demands', methods=['GET'])
+def get_pol_demands():
+    role = int(request.args.get("role", 6))
+    assigned = request.args.get("assigned", "")
+    
+    conn = get_db()
+    cursor = conn.cursor()
+    
+    if role in [1, 2]:
+        cursor.execute('''
+            SELECT * FROM pol_demands 
+            WHERE unit_name = ? ORDER BY id DESC
+        ''', (assigned,))
+    elif role in [3, 4]:
+        sub_units = [assigned] + BRIGADES.get(assigned, [])
+        placeholders = ','.join('?' for _ in sub_units)
+        cursor.execute(f'''
+            SELECT * FROM pol_demands 
+            WHERE unit_name IN ({placeholders}) ORDER BY id DESC
+        ''', (*sub_units,))
+    else:
+        cursor.execute('SELECT * FROM pol_demands ORDER BY id DESC')
+        
+    rows = cursor.fetchall()
+    conn.close()
+    
+    demands = []
+    for r in rows:
+        demands.append({
+            "id": r["id"],
+            "unitName": r["unit_name"],
+            "fiscalYear": r["fiscal_year"],
+            "month": r["month"],
+            "polGrade": r["pol_grade"],
+            "amount": r["amount"],
+            "status": r["status"]
+        })
+    return jsonify(demands)
+
+@app.route('/api/pol/allocate', methods=['POST'])
+def allocate_pol():
+    data = request.json
+    from_entity = data.get("fromEntity")
+    to_entity = data.get("toEntity")
+    month = data.get("month")
+    fiscal_year = data.get("fiscalYear", "2025-26")
+    pol_grade = data.get("polGrade")
+    amount = float(data.get("amount", 0))
+    
+    conn = get_db()
+    cursor = conn.cursor()
+    
+    # 1. Update pol_monthly_records for target unit (to_entity)
+    cursor.execute('''
+        SELECT id, allocation FROM pol_monthly_records 
+        WHERE unit_name = ? AND fiscal_year = ? AND month = ? AND pol_grade = ?
+    ''', (to_entity, fiscal_year, month, pol_grade))
+    row = cursor.fetchone()
+    if row:
+        current_alloc = row[1] or 0.0
+        cursor.execute('''
+            UPDATE pol_monthly_records SET allocation = ? 
+            WHERE id = ?
+        ''', (current_alloc + amount, row[0]))
+    else:
+        cursor.execute('''
+            INSERT INTO pol_monthly_records (unit_name, fiscal_year, month, pol_grade, allocation, expenditure)
+            VALUES (?, ?, ?, ?, ?, 0.0)
+        ''', (to_entity, fiscal_year, month, pol_grade, amount))
+        
+    # 2. Update logistics.pol (on-hand inventory) for target unit
+    cursor.execute("SELECT pol FROM logistics WHERE unit_name = ?", (to_entity,))
+    target_row = cursor.fetchone()
+    if target_row:
+        cursor.execute('''
+            UPDATE logistics SET pol = ? WHERE unit_name = ?
+        ''', (target_row[0] + int(amount), to_entity))
+    else:
+        cursor.execute('''
+            INSERT INTO logistics (unit_name, vAvail, vTotal, pol, cook, waiter, strength)
+            VALUES (?, 0, 0, ?, 0, 0, 0)
+        ''', (to_entity, int(amount)))
+        
+    # 3. Deduct from source unit (from_entity) if it's not 'Area HQ'
+    if from_entity != 'Area HQ':
+        cursor.execute("SELECT pol FROM logistics WHERE unit_name = ?", (from_entity,))
+        source_row = cursor.fetchone()
+        if source_row:
+            cursor.execute('''
+                UPDATE logistics SET pol = ? WHERE unit_name = ?
+            ''', (max(0, source_row[0] - int(amount)), from_entity))
+            
+    conn.commit()
+    conn.close()
+    return jsonify({"success": True})
+
+@app.route('/api/pol/expenditure', methods=['POST'])
+def add_pol_expenditure():
+    data = request.json
+    unit_name = data.get("unitName")
+    month = data.get("month")
+    fiscal_year = data.get("fiscalYear", "2025-26")
+    pol_grade = data.get("polGrade")
+    amount = float(data.get("amount", 0))
+    
+    conn = get_db()
+    cursor = conn.cursor()
+    
+    # 1. Update pol_monthly_records expenditure for unit
+    cursor.execute('''
+        SELECT id, expenditure FROM pol_monthly_records 
+        WHERE unit_name = ? AND fiscal_year = ? AND month = ? AND pol_grade = ?
+    ''', (unit_name, fiscal_year, month, pol_grade))
+    row = cursor.fetchone()
+    if row:
+        current_exp = row[1] or 0.0
+        cursor.execute('''
+            UPDATE pol_monthly_records SET expenditure = ? 
+            WHERE id = ?
+        ''', (current_exp + amount, row[0]))
+    else:
+        cursor.execute('''
+            INSERT INTO pol_monthly_records (unit_name, fiscal_year, month, pol_grade, allocation, expenditure)
+            VALUES (?, ?, ?, ?, 0.0, ?)
+        ''', (unit_name, fiscal_year, month, pol_grade, amount))
+        
+    # 2. Update logistics.pol (on-hand inventory) for unit (deduct expenditure)
+    cursor.execute("SELECT pol FROM logistics WHERE unit_name = ?", (unit_name,))
+    target_row = cursor.fetchone()
+    if target_row:
+        cursor.execute('''
+            UPDATE logistics SET pol = ? WHERE unit_name = ?
+        ''', (max(0, target_row[0] - int(amount)), unit_name))
+        
+    conn.commit()
+    conn.close()
+    return jsonify({"success": True})
+
 
 if __name__ == '__main__':
     init_db()
