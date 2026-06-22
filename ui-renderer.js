@@ -796,6 +796,14 @@ export function renderMainDashboard(container) {
     };
   }
 
+  bindLineChartEvents(role);
+
+  // Initialize charts and load data asynchronously
+  updateLineChartData();
+  initDonutChart();
+}
+
+export function bindLineChartEvents(role) {
   const lineYearSelect = document.getElementById("line-year-select");
   if (lineYearSelect) {
     lineYearSelect.onchange = (e) => {
@@ -823,10 +831,6 @@ export function renderMainDashboard(container) {
       updateLineChartData();
     };
   }
-
-  // Initialize charts and load data asynchronously
-  updateLineChartData();
-  initDonutChart();
 }
 
 export function renderDashboardContent() {
@@ -1491,19 +1495,19 @@ export function renderPolManagementView(container) {
   let buttonsHtml = "";
   if ([5, 6].includes(Number(role))) {
     buttonsHtml = `
-      <button class="btn-primary" onclick="openPolModal('DMD')" style="background: var(--primary);"><span style="margin-right: 4px;">📋</span>${t("btn_dmd")}</button>
-      <button class="btn-primary" onclick="openPolModal('ALT')" style="background: var(--success);"><span style="margin-right: 4px;">💸</span>${t("btn_alt")}</button>
+      <button class="pol-action-btn btn-dmd" onclick="openPolModal('DMD')"><span style="margin-right: 4px;">📋</span>${t("btn_dmd")}</button>
+      <button class="pol-action-btn btn-alt" onclick="openPolModal('ALT')"><span style="margin-right: 4px;">💸</span>${t("btn_alt")}</button>
     `;
   } else if ([3, 4].includes(Number(role))) {
     buttonsHtml = `
-      <button class="btn-primary" onclick="openPolModal('DMD')" style="background: var(--primary);"><span style="margin-right: 4px;">📋</span>${t("btn_dmd")}</button>
-      <button class="btn-primary" onclick="openPolModal('ALT')" style="background: var(--success);"><span style="margin-right: 4px;">💸</span>${t("btn_alt")}</button>
-      <button class="btn-primary" onclick="openPolModal('EXP')" style="background: var(--danger);"><span style="margin-right: 4px;">📉</span>${t("btn_exp")}</button>
+      <button class="pol-action-btn btn-dmd" onclick="openPolModal('DMD')"><span style="margin-right: 4px;">📋</span>${t("btn_dmd")}</button>
+      <button class="pol-action-btn btn-alt" onclick="openPolModal('ALT')"><span style="margin-right: 4px;">💸</span>${t("btn_alt")}</button>
+      <button class="pol-action-btn btn-exp" onclick="openPolModal('EXP')"><span style="margin-right: 4px;">📉</span>${t("btn_exp")}</button>
     `;
   } else {
     buttonsHtml = `
-      <button class="btn-primary" onclick="openPolModal('DMD')" style="background: var(--primary);"><span style="margin-right: 4px;">📋</span>${t("btn_dmd")}</button>
-      <button class="btn-primary" onclick="openPolModal('EXP')" style="background: var(--danger);"><span style="margin-right: 4px;">📉</span>${t("btn_exp")}</button>
+      <button class="pol-action-btn btn-dmd" onclick="openPolModal('DMD')"><span style="margin-right: 4px;">📋</span>${t("btn_dmd")}</button>
+      <button class="pol-action-btn btn-exp" onclick="openPolModal('EXP')"><span style="margin-right: 4px;">📉</span>${t("btn_exp")}</button>
     `;
   }
   
@@ -1514,13 +1518,13 @@ export function renderPolManagementView(container) {
   container.innerHTML = `
     <div id="main-dashboard-content">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-        <h2 class="dashboard-title" style="margin-bottom: 0;">${t("tab_pol")}</h2>
+        <h2 class="dashboard-title" style="margin-bottom: 0;">${t("title_pol_management")}</h2>
         <div style="display: flex; gap: 8px;">
           ${buttonsHtml}
         </div>
       </div>
       
-      <div class="dashboard-grid" style="grid-template-columns: 1fr 1fr; gap: 20px;">
+      <div class="dashboard-row-2">
         <!-- Left: State of POL Card -->
         <div class="dashboard-card" style="margin-bottom: 0;">
           <div class="card-header-row">
@@ -1545,36 +1549,38 @@ export function renderPolManagementView(container) {
           </div>
         </div>
         
-        <!-- Right: Recent Demands & Logs -->
+        <!-- Right: POL Line Chart -->
         <div class="dashboard-card" style="margin-bottom: 0;">
-          <div class="card-header-row">
-            <h4 class="card-header-title">${t("pol_log_title")}</h4>
+          <div class="card-header-row" style="margin-bottom: 6px;">
+            <select id="line-year-select" class="mini-dropdown">
+              <option value="2024-25" ${state.dashboard.lineYear === "2024-25" ? "selected" : ""}>${t("2024-25")}</option>
+              <option value="2025-26" ${state.dashboard.lineYear === "2025-26" ? "selected" : ""}>${t("2025-26")}</option>
+              <option value="2026-27" ${state.dashboard.lineYear === "2026-27" ? "selected" : ""}>${t("2026-27")}</option>
+            </select>
+            <select id="line-grade-select" class="mini-dropdown">
+              <option value="Diesel" ${state.dashboard.lineGrade === "Diesel" ? "selected" : ""}>${t("Diesel")}</option>
+              <option value="MS-74" ${state.dashboard.lineGrade === "MS-74" ? "selected" : ""}>${t("MS-74")}</option>
+              <option value="100 Octane" ${state.dashboard.lineGrade === "100 Octane" ? "selected" : ""}>${t("100 Octane")}</option>
+            </select>
           </div>
-          <div class="dashboard-table-container" style="max-height: 250px; overflow-y: auto;">
-            <table class="dashboard-table">
-              <thead>
-                <tr>
-                  <th><span class="cell-text-wrapper">${t("th_unit")}</span></th>
-                  <th><span class="cell-text-wrapper">${t("lbl_pol_grade")}</span></th>
-                  <th><span class="cell-text-wrapper">${t("lbl_month")}</span></th>
-                  <th><span class="cell-text-wrapper">${t("lbl_amount")}</span></th>
-                  <th><span class="cell-text-wrapper">${t("lbl_status")}</span></th>
-                </tr>
-              </thead>
-              <tbody id="pol-demands-log-body">
-                <tr>
-                  <td colspan="5" style="text-align: center; color: var(--text-muted);">Loading...</td>
-                </tr>
-              </tbody>
-            </table>
+          ${[3, 4, 5, 6].includes(Number(role)) ? `
+          <div class="card-header-row" style="margin-bottom: 12px; justify-content: flex-start;">
+            <select id="line-entity-select" class="mini-dropdown">
+              ${populateEntitySelectOptions(role)}
+            </select>
+          </div>
+          ` : ''}
+          <div style="position: relative; width: 100%; height: 220px; margin-top: 10px;">
+            <canvas id="total-exp-line-chart"></canvas>
           </div>
         </div>
       </div>
     </div>
   `;
   
+  bindLineChartEvents(role);
+  updateLineChartData();
   fetchPolStateData();
-  fetchPolDemandsLog();
 }
 
 export function openPolModal(action) {
@@ -1604,27 +1610,90 @@ export function openPolModal(action) {
     <option value="MS-74">MS-74 / এমএস-৭৪</option>
     <option value="100 Octane">100 Octane / ১০০ অকটেন</option>
   `;
+
+  // Set modal width based on action
+  const modalCard = modal.querySelector(".modal-card");
+  if (modalCard) {
+    if (action === "DMD") {
+      modalCard.style.maxWidth = "750px";
+    } else {
+      modalCard.style.maxWidth = "500px";
+    }
+  }
+
+  // Adjust modal submit and cancel buttons
+  const submitBtn = document.getElementById("pol-modal-submit-btn");
+  if (submitBtn) {
+    if (action === "DMD" && [5, 6].includes(Number(role))) {
+      submitBtn.style.display = "none";
+    } else {
+      submitBtn.style.display = "block";
+    }
+  }
+
+  const cancelBtn = document.getElementById("pol-modal-cancel-btn");
+  if (cancelBtn) {
+    cancelBtn.innerText = action === "DMD" && [5, 6].includes(Number(role)) ? (isBn ? "বন্ধ করুন" : "Close") : (isBn ? "বাতিল" : "Cancel");
+  }
   
   if (action === "DMD") {
-    titleEl.innerText = t("label_demand");
-    descEl.innerText = isBn ? "রানিং মাসের জ্বালানি চাহিদা সাবমিট করুন" : "Submit fuel demand request for the active month.";
+    titleEl.innerText = isBn ? "জ্বালানি চাহিদা ও লগ" : "Fuel Demands & Log";
+    descEl.innerText = isBn ? "জ্বালানি চাহিদার তালিকা এবং নতুন চাহিদা সাবমিট প্যানেল" : "View fuel demands and submit new demand request.";
+    
+    let formHtml = "";
+    if (![5, 6].includes(Number(role))) {
+      formHtml = `
+        <div style="border: 1px solid var(--accent-border); padding: 16px; border-radius: 8px; background: rgba(255,255,255,0.4); margin-bottom: 20px;">
+          <h5 style="margin-top: 0; margin-bottom: 12px; color: var(--primary); font-weight: 600;">${isBn ? "নতুন চাহিদা তৈরি করুন" : "Create New Demand"}</h5>
+          <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; align-items: flex-end;">
+            <div class="floating-label-group" style="margin-bottom:0;">
+              <label style="position:static; font-size:11px; font-weight:600; color:var(--primary); margin-bottom:4px; display:block;">${t("lbl_pol_grade")}</label>
+              <select id="pol-modal-grade" class="form-input" style="padding-top: 8px; height: 38px;">
+                ${gradeOptions}
+              </select>
+            </div>
+            <div class="floating-label-group" style="margin-bottom:0;">
+              <label style="position:static; font-size:11px; font-weight:600; color:var(--primary); margin-bottom:4px; display:block;">${t("lbl_month")}</label>
+              <select id="pol-modal-month" class="form-input" style="padding-top: 8px; height: 38px;">
+                ${monthsOptions}
+              </select>
+            </div>
+            <div class="floating-label-group" style="margin-bottom:0;">
+              <input type="number" id="pol-modal-amount" class="form-input" placeholder=" " required min="1" style="height: 38px;">
+              <label for="pol-modal-amount" style="top: 25px;">${t("lbl_amount")}</label>
+            </div>
+          </div>
+        </div>
+      `;
+    }
     
     fieldsContainer.innerHTML = `
-      <div class="floating-label-group">
-        <select id="pol-modal-grade" class="form-input" style="padding-top: 8px;">
-          ${gradeOptions}
-        </select>
-      </div>
-      <div class="floating-label-group">
-        <select id="pol-modal-month" class="form-input" style="padding-top: 8px;">
-          ${monthsOptions}
-        </select>
-      </div>
-      <div class="floating-label-group">
-        <input type="number" id="pol-modal-amount" class="form-input" placeholder=" " required min="1">
-        <label for="pol-modal-amount">${t("lbl_amount")}</label>
+      ${formHtml}
+      
+      <div class="dashboard-card" style="margin-bottom: 0; padding: 0; border: none; background: transparent; box-shadow: none;">
+        <h5 style="margin-top: 0; margin-bottom: 10px; color: var(--primary); font-weight: 600;">${t("pol_log_title")}</h5>
+        <div class="dashboard-table-container" style="max-height: 250px; overflow-y: auto; border: 1px solid var(--accent-border); border-radius: 8px;">
+          <table class="dashboard-table" style="width: 100%;">
+            <thead>
+              <tr>
+                <th><span class="cell-text-wrapper">${t("th_unit")}</span></th>
+                <th><span class="cell-text-wrapper">${t("lbl_pol_grade")}</span></th>
+                <th><span class="cell-text-wrapper">${t("lbl_month")}</span></th>
+                <th><span class="cell-text-wrapper">${t("lbl_amount")}</span></th>
+                <th><span class="cell-text-wrapper">${t("lbl_status")}</span></th>
+              </tr>
+            </thead>
+            <tbody id="pol-demands-log-body">
+              <tr>
+                <td colspan="5" style="text-align: center; color: var(--text-muted);">Loading...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </div>
     `;
+    
+    fetchPolDemandsLog();
   } 
   else if (action === "ALT") {
     titleEl.innerText = t("label_allocate");

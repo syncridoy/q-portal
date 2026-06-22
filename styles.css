@@ -2616,3 +2616,45 @@ body.modal-open {
   font-weight: 600 !important; /* Semi-bold (not bold/700) */
 }
 
+/* POL Management Tab Action Buttons */
+.pol-action-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 16px;
+  height: 36px;
+  min-width: 90px;
+  font-family: 'Outfit', sans-serif;
+  font-weight: 600;
+  font-size: 13px;
+  border-radius: 6px;
+  cursor: pointer;
+  border: none;
+  color: var(--text-white);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.06);
+}
+
+.pol-action-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.12);
+  filter: brightness(1.10);
+}
+
+.pol-action-btn:active {
+  transform: translateY(0);
+}
+
+.pol-action-btn.btn-dmd {
+  background: var(--primary); /* Charcoal */
+}
+
+.pol-action-btn.btn-alt {
+  background: var(--success); /* Green */
+}
+
+.pol-action-btn.btn-exp {
+  background: var(--danger); /* Red */
+}
+

@@ -2276,9 +2276,17 @@ document.addEventListener("DOMContentLoaded", async () => {
       const modal = document.getElementById("pol-management-modal");
       const action = modal.dataset.action;
       
-      const grade = document.getElementById("pol-modal-grade").value;
-      const month = document.getElementById("pol-modal-month").value;
-      const amount = parseFloat(document.getElementById("pol-modal-amount").value);
+      const gradeEl = document.getElementById("pol-modal-grade");
+      const monthEl = document.getElementById("pol-modal-month");
+      const amountEl = document.getElementById("pol-modal-amount");
+      
+      if (!gradeEl || !monthEl || !amountEl) {
+        return;
+      }
+      
+      const grade = gradeEl.value;
+      const month = monthEl.value;
+      const amount = parseFloat(amountEl.value);
       
       const role = state.currentUser ? state.currentUser.role : 1;
       const assigned = state.currentUser ? state.currentUser.assigned : "";
