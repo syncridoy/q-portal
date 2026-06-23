@@ -1797,11 +1797,22 @@ export function openPolModal(action) {
   }
   
   modal.style.display = "flex";
+  modal.offsetHeight; // Force reflow
+  modal.classList.add("open");
+  document.body.classList.add("modal-open");
 }
 
 export function closePolModal() {
   const modal = document.getElementById("pol-management-modal");
-  if (modal) modal.style.display = "none";
+  if (modal) {
+    modal.classList.remove("open");
+    document.body.classList.remove("modal-open");
+    setTimeout(() => {
+      if (!modal.classList.contains("open")) {
+        modal.style.display = "none";
+      }
+    }, 300);
+  }
 }
 
 window.addEventListener("languagechange", () => {
