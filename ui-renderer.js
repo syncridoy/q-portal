@@ -583,27 +583,32 @@ export function renderMainDashboard(container) {
           </div>
 
           <!-- Card 4: Total Exp Line Chart -->
-          <div class="dashboard-card">
-            <div class="card-header-row" style="margin-bottom: 12px; justify-content: flex-start; gap: 8px;">
-              ${[3, 4, 5, 6].includes(Number(role)) ? `
-              <select id="line-entity-select" class="mini-dropdown" style="width: auto; max-width: 150px;">
-                ${populateEntitySelectOptions(role)}
-              </select>
-              ` : ''}
-              <select id="line-year-select" class="mini-dropdown">
-                <option value="2024-25" ${state.dashboard.lineYear === "2024-25" ? "selected" : ""}>${t("2024-25")}</option>
-                <option value="2025-26" ${state.dashboard.lineYear === "2025-26" ? "selected" : ""}>${t("2025-26")}</option>
-                <option value="2026-27" ${state.dashboard.lineYear === "2026-27" ? "selected" : ""}>${t("2026-27")}</option>
-              </select>
-              <select id="line-grade-select" class="mini-dropdown">
-                <option value="Diesel" ${state.dashboard.lineGrade === "Diesel" ? "selected" : ""}>${t("Diesel")}</option>
-                <option value="MS-74" ${state.dashboard.lineGrade === "MS-74" ? "selected" : ""}>${t("MS-74")}</option>
-                <option value="100 Octane" ${state.dashboard.lineGrade === "100 Octane" ? "selected" : ""}>${t("100 Octane")}</option>
-              </select>
-            </div>
-            <div style="display: flex; width: 100%; align-items: center; gap: 20px; flex: 1;">
-              <!-- Left side stats -->
-              <div style="flex: 0 0 170px; display: flex; flex-direction: column; gap: 8px;">
+          <div class="dashboard-card" style="justify-content: stretch;">
+            <div style="display: flex; width: 100%; gap: 20px; flex: 1; align-items: stretch;">
+              <!-- Left Column: Dropdowns & Stats -->
+              <div style="flex: 0 0 180px; display: flex; flex-direction: column; gap: 8px; justify-content: flex-start;">
+                <!-- Dropdown Row 1: Year and Grade -->
+                <div style="display: flex; gap: 8px; margin-bottom: 2px;">
+                  <select id="line-year-select" class="mini-dropdown">
+                    <option value="2024-25" ${state.dashboard.lineYear === "2024-25" ? "selected" : ""}>${t("2024-25")}</option>
+                    <option value="2025-26" ${state.dashboard.lineYear === "2025-26" ? "selected" : ""}>${t("2025-26")}</option>
+                    <option value="2026-27" ${state.dashboard.lineYear === "2026-27" ? "selected" : ""}>${t("2026-27")}</option>
+                  </select>
+                  <select id="line-grade-select" class="mini-dropdown">
+                    <option value="Diesel" ${state.dashboard.lineGrade === "Diesel" ? "selected" : ""}>${t("Diesel")}</option>
+                    <option value="MS-74" ${state.dashboard.lineGrade === "MS-74" ? "selected" : ""}>${t("MS-74")}</option>
+                    <option value="100 Octane" ${state.dashboard.lineGrade === "100 Octane" ? "selected" : ""}>${t("100 Octane")}</option>
+                  </select>
+                </div>
+                <!-- Dropdown Row 2: Brigade/Unit (Entity) -->
+                ${[3, 4, 5, 6].includes(Number(role)) ? `
+                <div style="margin-bottom: 4px; display: flex; justify-content: flex-start;">
+                  <select id="line-entity-select" class="mini-dropdown" style="width: 100%; max-width: 180px;">
+                    ${populateEntitySelectOptions(role)}
+                  </select>
+                </div>
+                ` : ''}
+                <!-- Metric Card: Allocation -->
                 <div class="metric-card-box allocation-card">
                   <span style="font-size: 11px; font-weight: 700; color: #4b7fcc; display: block; text-transform: uppercase; letter-spacing: 0.5px;" data-translate="lbl_alloc_heading">${t("lbl_alloc_heading")}</span>
                   <div style="display: flex; align-items: center; margin-top: 3px; font-size: 12px; font-weight: 600; color: #4b7fcc;">
@@ -617,6 +622,7 @@ export function renderMainDashboard(container) {
                     <span id="avg-alt-value" class="metric-value">${formatDisplayNumber((initialLineVal.alt || 0) / ((initialLineVal.altData && initialLineVal.altData.length > 0) ? initialLineVal.altData.length : 12))}</span>
                   </div>
                 </div>
+                <!-- Metric Card: Expenditure -->
                 <div class="metric-card-box expenditure-card">
                   <span style="font-size: 11px; font-weight: 700; color: #f87171; display: block; text-transform: uppercase; letter-spacing: 0.5px;" data-translate="lbl_exp_heading">${t("lbl_exp_heading")}</span>
                   <div style="display: flex; align-items: center; margin-top: 3px; font-size: 12px; font-weight: 600; color: #f87171;">
@@ -631,8 +637,8 @@ export function renderMainDashboard(container) {
                   </div>
                 </div>
               </div>
-              <!-- Right side canvas -->
-              <div style="flex: 1; height: 180px; position: relative;">
+              <!-- Right Column: Graph -->
+              <div style="flex: 1; height: 230px; position: relative;">
                 <canvas id="total-exp-line-chart"></canvas>
               </div>
             </div>
@@ -1489,6 +1495,7 @@ export function renderPolManagementView(container) {
   const role = state.currentUser ? state.currentUser.role : 6;
   const isBn = state.language === "bn";
   const t = (key) => TRANSLATIONS[state.language][key] || key;
+  const initialLineVal = state.dashboard.lineChartData || { alt: 0, total: 0, altData: [], data: [] };
   
   let buttonsHtml = "";
   if ([5, 6].includes(Number(role))) {
@@ -1548,26 +1555,64 @@ export function renderPolManagementView(container) {
         </div>
         
         <!-- Right: POL Line Chart -->
-        <div class="dashboard-card" style="margin-bottom: 0;">
-          <div class="card-header-row" style="margin-bottom: 12px; justify-content: flex-start; gap: 8px;">
-            ${[3, 4, 5, 6].includes(Number(role)) ? `
-            <select id="line-entity-select" class="mini-dropdown">
-              ${populateEntitySelectOptions(role)}
-            </select>
-            ` : ''}
-            <select id="line-year-select" class="mini-dropdown">
-              <option value="2024-25" ${state.dashboard.lineYear === "2024-25" ? "selected" : ""}>${t("2024-25")}</option>
-              <option value="2025-26" ${state.dashboard.lineYear === "2025-26" ? "selected" : ""}>${t("2025-26")}</option>
-              <option value="2026-27" ${state.dashboard.lineYear === "2026-27" ? "selected" : ""}>${t("2026-27")}</option>
-            </select>
-            <select id="line-grade-select" class="mini-dropdown">
-              <option value="Diesel" ${state.dashboard.lineGrade === "Diesel" ? "selected" : ""}>${t("Diesel")}</option>
-              <option value="MS-74" ${state.dashboard.lineGrade === "MS-74" ? "selected" : ""}>${t("MS-74")}</option>
-              <option value="100 Octane" ${state.dashboard.lineGrade === "100 Octane" ? "selected" : ""}>${t("100 Octane")}</option>
-            </select>
-          </div>
-          <div style="position: relative; width: 100%; height: 270px; margin-top: 10px;">
-            <canvas id="total-exp-line-chart"></canvas>
+        <div class="dashboard-card" style="margin-bottom: 0; justify-content: stretch;">
+          <div style="display: flex; width: 100%; gap: 20px; flex: 1; align-items: stretch;">
+            <!-- Left Column: Dropdowns & Stats -->
+            <div style="flex: 0 0 180px; display: flex; flex-direction: column; gap: 8px; justify-content: flex-start;">
+              <!-- Dropdown Row 1: Year and Grade -->
+              <div style="display: flex; gap: 8px; margin-bottom: 2px;">
+                <select id="line-year-select" class="mini-dropdown">
+                  <option value="2024-25" ${state.dashboard.lineYear === "2024-25" ? "selected" : ""}>${t("2024-25")}</option>
+                  <option value="2025-26" ${state.dashboard.lineYear === "2025-26" ? "selected" : ""}>${t("2025-26")}</option>
+                  <option value="2026-27" ${state.dashboard.lineYear === "2026-27" ? "selected" : ""}>${t("2026-27")}</option>
+                </select>
+                <select id="line-grade-select" class="mini-dropdown">
+                  <option value="Diesel" ${state.dashboard.lineGrade === "Diesel" ? "selected" : ""}>${t("Diesel")}</option>
+                  <option value="MS-74" ${state.dashboard.lineGrade === "MS-74" ? "selected" : ""}>${t("MS-74")}</option>
+                  <option value="100 Octane" ${state.dashboard.lineGrade === "100 Octane" ? "selected" : ""}>${t("100 Octane")}</option>
+                </select>
+              </div>
+              <!-- Dropdown Row 2: Brigade/Unit (Entity) -->
+              ${[3, 4, 5, 6].includes(Number(role)) ? `
+              <div style="margin-bottom: 4px; display: flex; justify-content: flex-start;">
+                <select id="line-entity-select" class="mini-dropdown" style="width: 100%; max-width: 180px;">
+                  ${populateEntitySelectOptions(role)}
+                </select>
+              </div>
+              ` : ''}
+              <!-- Metric Card: Allocation -->
+              <div class="metric-card-box allocation-card">
+                <span style="font-size: 11px; font-weight: 700; color: #4b7fcc; display: block; text-transform: uppercase; letter-spacing: 0.5px;" data-translate="lbl_alloc_heading">${t("lbl_alloc_heading")}</span>
+                <div style="display: flex; align-items: center; margin-top: 3px; font-size: 12px; font-weight: 600; color: #4b7fcc;">
+                  <span style="display: inline-block; width: 45px;" data-translate="lbl_total_label">${t("lbl_total_label")}</span>
+                  <span style="margin-right: 4px;">:</span>
+                  <span id="total-alt-value" class="metric-value">${formatDisplayNumber(initialLineVal.alt)}</span>
+                </div>
+                <div style="display: flex; align-items: center; margin-top: 1px; font-size: 11px; font-weight: 500; color: #4b7fcc;">
+                  <span style="display: inline-block; width: 45px;" data-translate="lbl_avg_label">${t("lbl_avg_label")}</span>
+                  <span style="margin-right: 4px;">:</span>
+                  <span id="avg-alt-value" class="metric-value">${formatDisplayNumber((initialLineVal.alt || 0) / ((initialLineVal.altData && initialLineVal.altData.length > 0) ? initialLineVal.altData.length : 12))}</span>
+                </div>
+              </div>
+              <!-- Metric Card: Expenditure -->
+              <div class="metric-card-box expenditure-card">
+                <span style="font-size: 11px; font-weight: 700; color: #f87171; display: block; text-transform: uppercase; letter-spacing: 0.5px;" data-translate="lbl_exp_heading">${t("lbl_exp_heading")}</span>
+                <div style="display: flex; align-items: center; margin-top: 3px; font-size: 12px; font-weight: 600; color: #f87171;">
+                  <span style="display: inline-block; width: 45px;" data-translate="lbl_total_label">${t("lbl_total_label")}</span>
+                  <span style="margin-right: 4px;">:</span>
+                  <span id="total-exp-value" class="metric-value">${formatDisplayNumber(initialLineVal.total)}</span>
+                </div>
+                <div style="display: flex; align-items: center; margin-top: 1px; font-size: 11px; font-weight: 500; color: #f87171;">
+                  <span style="display: inline-block; width: 45px;" data-translate="lbl_avg_label">${t("lbl_avg_label")}</span>
+                  <span style="margin-right: 4px;">:</span>
+                  <span id="avg-exp-value" class="metric-value">${formatDisplayNumber((initialLineVal.total || 0) / ((initialLineVal.altData && initialLineVal.altData.length > 0) ? initialLineVal.altData.length : 12))}</span>
+                </div>
+              </div>
+            </div>
+            <!-- Right Column: Graph -->
+            <div style="flex: 1; height: 230px; position: relative;">
+              <canvas id="total-exp-line-chart"></canvas>
+            </div>
           </div>
         </div>
       </div>
