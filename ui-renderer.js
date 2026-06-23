@@ -584,7 +584,7 @@ export function renderMainDashboard(container) {
 
           <!-- Card 4: Total Exp Line Chart -->
           <div class="dashboard-card">
-            <div class="card-header-row" style="margin-bottom: 6px;">
+            <div class="card-header-row" style="margin-bottom: 6px; justify-content: flex-end; gap: 8px;">
               <select id="line-year-select" class="mini-dropdown">
                 <option value="2024-25" ${state.dashboard.lineYear === "2024-25" ? "selected" : ""}>${t("2024-25")}</option>
                 <option value="2025-26" ${state.dashboard.lineYear === "2025-26" ? "selected" : ""}>${t("2025-26")}</option>
@@ -1551,7 +1551,7 @@ export function renderPolManagementView(container) {
         
         <!-- Right: POL Line Chart -->
         <div class="dashboard-card" style="margin-bottom: 0;">
-          <div class="card-header-row" style="margin-bottom: 6px;">
+          <div class="card-header-row" style="margin-bottom: 6px; justify-content: flex-end; gap: 8px;">
             <select id="line-year-select" class="mini-dropdown">
               <option value="2024-25" ${state.dashboard.lineYear === "2024-25" ? "selected" : ""}>${t("2024-25")}</option>
               <option value="2025-26" ${state.dashboard.lineYear === "2025-26" ? "selected" : ""}>${t("2025-26")}</option>
