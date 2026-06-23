@@ -584,7 +584,12 @@ export function renderMainDashboard(container) {
 
           <!-- Card 4: Total Exp Line Chart -->
           <div class="dashboard-card">
-            <div class="card-header-row" style="margin-bottom: 6px; justify-content: flex-end; gap: 8px;">
+            <div class="card-header-row" style="margin-bottom: 12px; justify-content: flex-start; gap: 8px;">
+              ${[3, 4, 5, 6].includes(Number(role)) ? `
+              <select id="line-entity-select" class="mini-dropdown" style="width: auto; max-width: 150px;">
+                ${populateEntitySelectOptions(role)}
+              </select>
+              ` : ''}
               <select id="line-year-select" class="mini-dropdown">
                 <option value="2024-25" ${state.dashboard.lineYear === "2024-25" ? "selected" : ""}>${t("2024-25")}</option>
                 <option value="2025-26" ${state.dashboard.lineYear === "2025-26" ? "selected" : ""}>${t("2025-26")}</option>
@@ -596,13 +601,6 @@ export function renderMainDashboard(container) {
                 <option value="100 Octane" ${state.dashboard.lineGrade === "100 Octane" ? "selected" : ""}>${t("100 Octane")}</option>
               </select>
             </div>
-            ${[3, 4, 5, 6].includes(Number(role)) ? `
-            <div class="card-header-row" style="margin-bottom: 12px; justify-content: flex-start;">
-              <select id="line-entity-select" class="mini-dropdown" style="width: auto; max-width: 150px;">
-                ${populateEntitySelectOptions(role)}
-              </select>
-            </div>
-            ` : ''}
             <div style="display: flex; width: 100%; align-items: center; gap: 20px; flex: 1;">
               <!-- Left side stats -->
               <div style="flex: 0 0 170px; display: flex; flex-direction: column; gap: 8px;">
@@ -634,7 +632,7 @@ export function renderMainDashboard(container) {
                 </div>
               </div>
               <!-- Right side canvas -->
-              <div style="flex: 1; height: 140px; position: relative;">
+              <div style="flex: 1; height: 180px; position: relative;">
                 <canvas id="total-exp-line-chart"></canvas>
               </div>
             </div>
@@ -1551,7 +1549,12 @@ export function renderPolManagementView(container) {
         
         <!-- Right: POL Line Chart -->
         <div class="dashboard-card" style="margin-bottom: 0;">
-          <div class="card-header-row" style="margin-bottom: 6px; justify-content: flex-end; gap: 8px;">
+          <div class="card-header-row" style="margin-bottom: 12px; justify-content: flex-start; gap: 8px;">
+            ${[3, 4, 5, 6].includes(Number(role)) ? `
+            <select id="line-entity-select" class="mini-dropdown">
+              ${populateEntitySelectOptions(role)}
+            </select>
+            ` : ''}
             <select id="line-year-select" class="mini-dropdown">
               <option value="2024-25" ${state.dashboard.lineYear === "2024-25" ? "selected" : ""}>${t("2024-25")}</option>
               <option value="2025-26" ${state.dashboard.lineYear === "2025-26" ? "selected" : ""}>${t("2025-26")}</option>
@@ -1563,14 +1566,7 @@ export function renderPolManagementView(container) {
               <option value="100 Octane" ${state.dashboard.lineGrade === "100 Octane" ? "selected" : ""}>${t("100 Octane")}</option>
             </select>
           </div>
-          ${[3, 4, 5, 6].includes(Number(role)) ? `
-          <div class="card-header-row" style="margin-bottom: 12px; justify-content: flex-start;">
-            <select id="line-entity-select" class="mini-dropdown">
-              ${populateEntitySelectOptions(role)}
-            </select>
-          </div>
-          ` : ''}
-          <div style="position: relative; width: 100%; height: 220px; margin-top: 10px;">
+          <div style="position: relative; width: 100%; height: 270px; margin-top: 10px;">
             <canvas id="total-exp-line-chart"></canvas>
           </div>
         </div>
