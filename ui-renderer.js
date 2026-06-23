@@ -1441,55 +1441,6 @@ export async function fetchPolStateData() {
   }
 }
 
-export async function fetchPolDemandsLog() {
-  const logBody = document.getElementById("pol-demands-log-body");
-  if (!logBody) return;
-  
-  const role = state.currentUser ? state.currentUser.role : 6;
-  const assigned = state.currentUser ? state.currentUser.assigned : "";
-  const isBn = state.language === "bn";
-  const t = (key) => TRANSLATIONS[state.language][key] || key;
-  
-  try {
-    const url = `/api/pol/demands?role=${role}&assigned=${encodeURIComponent(assigned)}`;
-    const res = await fetch(url);
-    const data = await res.json();
-    
-    logBody.innerHTML = "";
-    if (data.length === 0) {
-      logBody.innerHTML = `
-        <tr>
-          <td colspan="5" style="text-align: center; color: var(--text-muted);">${isBn ? "কোনো চাহিদা পাওয়া যায়নি।" : "No demands found."}</td>
-        </tr>
-      `;
-      return;
-    }
-    
-    data.forEach(r => {
-      const tr = document.createElement("tr");
-      const gradeLabel = r.polGrade === "Diesel" ? (isBn ? "ডিজেল" : "Diesel") : (r.polGrade === "MS-74" ? (isBn ? "এমএস-৭৪" : "MS-74") : (isBn ? "১০০ অকটেন" : "100 Octane"));
-      const monthMap = {
-        'Jul': 'জুলাই', 'Aug': 'আগস্ট', 'Sep': 'সেপ্টেম্বর', 'Oct': 'অক্টোবর', 'Nov': 'নভেম্বর', 'Dec': 'ডিসেম্বর',
-        'Jan': 'জানুয়ারি', 'Feb': 'ফেব্রুয়ারি', 'Mar': 'মার্চ', 'Apr': 'এপ্রিল', 'May': 'মে', 'Jun': 'জুন'
-      };
-      const monthLabel = isBn ? (monthMap[r.month] || r.month) : r.month;
-      
-      const amountVal = isBn ? convertDigitsToBengali(r.amount) : r.amount;
-      const statusLabel = r.status === 'Pending' ? (isBn ? "পেন্ডিং" : "Pending") : (isBn ? "অনুমোদিত" : "Approved");
-      
-      tr.innerHTML = `
-        <td><span class="cell-text-wrapper">${getDisplayNameForUnit(r.unitName)}</span></td>
-        <td><span class="cell-text-wrapper">${gradeLabel}</span></td>
-        <td><span class="cell-text-wrapper">${monthLabel}</span></td>
-        <td><span class="cell-text-wrapper">${amountVal}</span></td>
-        <td><span class="cell-text-wrapper" style="font-weight:700; color:${r.status === 'Pending' ? '#eab308' : '#10b981'};">${statusLabel}</span></td>
-      `;
-      logBody.appendChild(tr);
-    });
-  } catch (err) {
-    console.error("Failed to load demands log:", err);
-  }
-}
 
 export function renderPolManagementView(container) {
   const role = state.currentUser ? state.currentUser.role : 6;
@@ -1624,6 +1575,483 @@ export function renderPolManagementView(container) {
   fetchPolStateData();
 }
 
+export function switchDmdView(viewName) {
+  state.dashboard.dmdActiveView = viewName;
+  const fieldsContainer = document.getElementById("pol-modal-form-fields");
+  if (fieldsContainer) {
+    renderDmdModalContent(fieldsContainer);
+  }
+}
+window.switchDmdView = switchDmdView;
+
+export function handleRefLetterFileChange() {
+  const fileInput = document.getElementById("pol-modal-file");
+  const labelEl = document.getElementById("pol-file-selected-name");
+  if (fileInput && fileInput.files && fileInput.files[0] && labelEl) {
+    labelEl.innerText = fileInput.files[0].name;
+  }
+}
+window.handleRefLetterFileChange = handleRefLetterFileChange;
+
+export async function updateLiveMetrics() {
+  const gradeSelect = document.getElementById("pol-modal-grade");
+  if (!gradeSelect) return;
+  
+  const grade = gradeSelect.value;
+  const isBn = state.language === "bn";
+  const t = (key) => TRANSLATIONS[state.language][key] || key;
+  
+  const avgExpSpan = document.getElementById("pol-dmd-avg-exp");
+  const balSpan = document.getElementById("pol-dmd-bal");
+  const daysLastSpan = document.getElementById("pol-dmd-days-last");
+  
+  if (avgExpSpan) avgExpSpan.innerText = isBn ? "লোড হচ্ছে..." : "Loading...";
+  if (balSpan) balSpan.innerText = isBn ? "লোড হচ্ছে..." : "Loading...";
+  if (daysLastSpan) daysLastSpan.innerText = isBn ? "লোড হচ্ছে..." : "Loading...";
+  
+  try {
+    const unitName = state.currentUser.assigned || "HQ 55 Inf Div";
+    const res = await fetch(`/api/pol/unit_metrics?unitName=${encodeURIComponent(unitName)}&polGrade=${grade}&fiscalYear=2025-26`);
+    const data = await res.json();
+    
+    if (avgExpSpan) avgExpSpan.innerText = formatDisplayNumber(data.avgExp);
+    if (balSpan) balSpan.innerText = formatDisplayNumber(data.bal);
+    if (daysLastSpan) {
+      const daysVal = isBn ? convertDigitsToBengali(data.daysLast) : data.daysLast;
+      daysLastSpan.innerText = `${daysVal} ${isBn ? 'দিন' : 'Day'}`;
+    }
+  } catch (err) {
+    console.error("Failed to load live unit metrics:", err);
+    if (avgExpSpan) avgExpSpan.innerText = "-";
+    if (balSpan) balSpan.innerText = "-";
+    if (daysLastSpan) daysLastSpan.innerText = "-";
+  }
+}
+window.updateLiveMetrics = updateLiveMetrics;
+
+export async function submitDemandFromForm() {
+  const gradeSelect = document.getElementById("pol-modal-grade");
+  const amountInput = document.getElementById("pol-modal-amount");
+  const fileInput = document.getElementById("pol-modal-file");
+  
+  if (!gradeSelect || !amountInput) return;
+  
+  const grade = gradeSelect.value;
+  const amount = parseFloat(amountInput.value);
+  const isBn = state.language === "bn";
+  
+  if (isNaN(amount) || amount <= 0) {
+    alert(isBn ? "অনুগ্রহ করে একটি বৈধ চাহিদার পরিমাণ দিন।" : "Please enter a valid demand quantity.");
+    return;
+  }
+  
+  let refLetter = "";
+  if (fileInput && fileInput.files && fileInput.files[0]) {
+    const file = fileInput.files[0];
+    const ext = file.name.substring(file.name.lastIndexOf('.')).toLowerCase();
+    if (!['.pdf', '.png', '.jpg', '.jpeg'].includes(ext)) {
+      alert(isBn ? "অসমর্থিত ফাইল ফরম্যাট! শুধুমাত্র PDF, PNG, JPEG সমর্থন করে।" : "Unsupported file format! Only PDF, PNG, JPEG allowed.");
+      return;
+    }
+    
+    const formData = new FormData();
+    formData.append("file", file);
+    
+    try {
+      const uploadRes = await fetch("/api/pol/upload_ref", {
+        method: "POST",
+        body: formData
+      });
+      const uploadData = await uploadRes.json();
+      if (!uploadRes.ok || !uploadData.success) {
+        alert((isBn ? "ফাইল আপলোড ব্যর্থ হয়েছে: " : "File upload failed: ") + (uploadData.error || "Unknown error"));
+        return;
+      }
+      refLetter = uploadData.filename;
+    } catch (err) {
+      console.error("Error uploading file:", err);
+      alert(isBn ? "সার্ভারে ফাইল আপলোড করতে সমস্যা হয়েছে।" : "Connection error while uploading file.");
+      return;
+    }
+  }
+  
+  const now = new Date();
+  const dateNum = now.getDate();
+  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  let monthIndex = now.getMonth();
+  if (dateNum >= 27) {
+    monthIndex = (monthIndex + 1) % 12;
+  }
+  const currentMonth = months[monthIndex];
+  
+  let year = now.getFullYear();
+  let fyMonthIndex = now.getMonth();
+  if (dateNum >= 27) {
+    fyMonthIndex = (fyMonthIndex + 1) % 12;
+    if (fyMonthIndex === 0) {
+      year += 1;
+    }
+  }
+  let currentFY = "2025-26";
+  if (fyMonthIndex >= 6) {
+    currentFY = `${year}-${(year + 1) % 100}`;
+  } else {
+    currentFY = `${year - 1}-${year % 100}`;
+  }
+  
+  try {
+    const res = await fetch("/api/pol/demand", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        unitName: state.currentUser.assigned || "HQ 55 Inf Div",
+        month: currentMonth,
+        fiscalYear: currentFY,
+        polGrade: grade,
+        amount: amount,
+        refLetter: refLetter
+      })
+    });
+    const data = await res.json();
+    if (data.success) {
+      amountInput.value = "";
+      if (fileInput) fileInput.value = "";
+      const labelEl = document.getElementById("pol-file-selected-name");
+      if (labelEl) labelEl.innerText = "";
+      
+      updateLiveMetrics();
+      fetchPolDemandsLog();
+      alert(isBn ? "জ্বালানি চাহিদা সফলভাবে পাঠানো হয়েছে।" : "Fuel demand submitted successfully.");
+    }
+  } catch (err) {
+    console.error("Failed to submit fuel demand:", err);
+    alert(isBn ? "জ্বালানি চাহিদা পাঠাতে ব্যর্থ হয়েছে।" : "Failed to submit fuel demand.");
+  }
+}
+window.submitDemandFromForm = submitDemandFromForm;
+
+export async function allocateFromDemandRow(demandId) {
+  const isBn = state.language === "bn";
+  const inputEl = document.querySelector(`.alt-qty-input[data-demand-id="${demandId}"]`);
+  if (!inputEl) return;
+  
+  const amount = parseFloat(inputEl.value);
+  if (isNaN(amount) || amount <= 0) {
+    alert(isBn ? "অনুগ্রহ করে একটি বৈধ বরাদ্দের পরিমাণ দিন।" : "Please enter a valid allocation amount.");
+    return;
+  }
+  
+  const confirmMsg = isBn 
+    ? `আপনি কি নিশ্চিত যে এই চাহিদার বিপরীতে ${convertDigitsToBengali(amount)} লিটার বরাদ্দ দিতে চান?` 
+    : `Are you sure you want to allocate ${amount} Liters for this demand?`;
+    
+  if (!confirm(confirmMsg)) return;
+  
+  try {
+    const res = await fetch("/api/pol/allocate_demand", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        demandId: demandId,
+        amount: amount,
+        fromEntity: state.currentUser.assigned || "HQ 55 Inf Div"
+      })
+    });
+    const data = await res.json();
+    if (data.success) {
+      inputEl.value = "";
+      fetchPolDemandsLog();
+      
+      if (window.fetchPolStateData) {
+        window.fetchPolStateData();
+      } else if (typeof fetchPolStateData === 'function') {
+        fetchPolStateData();
+      }
+      
+      if (window.updateLineChartData) {
+        window.updateLineChartData();
+      }
+      
+      alert(isBn ? "বরাদ্দ সফলভাবে সম্পন্ন হয়েছে।" : "Allocation recorded successfully.");
+    } else {
+      alert((isBn ? "বরাদ্দ ব্যর্থ হয়েছে: " : "Allocation failed: ") + (data.error || ""));
+    }
+  } catch (err) {
+    console.error("Failed to record allocation from demand row:", err);
+    alert(isBn ? "বরাদ্দ রেকর্ড করতে ত্রুটি ঘটেছে।" : "Error recording allocation.");
+  }
+}
+window.allocateFromDemandRow = allocateFromDemandRow;
+
+export function renderDmdModalContent(fieldsContainer) {
+  const role = state.currentUser ? state.currentUser.role : 1;
+  const isBn = state.language === "bn";
+  const t = (key) => TRANSLATIONS[state.language][key] || key;
+  
+  if (!state.dashboard.dmdActiveView) {
+    if ([3, 4].includes(Number(role))) {
+      state.dashboard.dmdActiveView = 'unit_demands';
+    } else if ([5, 6].includes(Number(role))) {
+      state.dashboard.dmdActiveView = 'unit_demands';
+    } else {
+      state.dashboard.dmdActiveView = 'bde_hq_demands';
+    }
+  }
+  
+  const currentView = state.dashboard.dmdActiveView;
+  
+  let headerHtml = "";
+  if ([3, 4].includes(Number(role))) {
+    const isUnitActive = currentView === 'unit_demands';
+    const isBdeActive = currentView === 'bde_hq_demands';
+    headerHtml = `
+      <div style="display: flex; gap: 8px; margin-bottom: 16px; border-bottom: 1px solid var(--accent-border); padding-bottom: 12px; justify-content: flex-start;">
+        <button class="pol-action-btn ${isUnitActive ? 'btn-dmd' : ''}" style="padding: 6px 12px; font-size:12px; height:auto; width:auto; background: ${isUnitActive ? 'var(--primary)' : 'rgba(0,0,0,0.05)'}; color: ${isUnitActive ? 'white' : 'var(--text-muted)'};" onclick="switchDmdView('unit_demands')">
+          ${t("btn_unit_demands")}
+        </button>
+        <button class="pol-action-btn ${isBdeActive ? 'btn-dmd' : ''}" style="padding: 6px 12px; font-size:12px; height:auto; width:auto; background: ${isBdeActive ? 'var(--primary)' : 'rgba(0,0,0,0.05)'}; color: ${isBdeActive ? 'white' : 'var(--text-muted)'};" onclick="switchDmdView('bde_hq_demands')">
+          ${t("btn_dmd_bde_hq")}
+        </button>
+      </div>
+    `;
+  }
+  
+  let contentHtml = "";
+  
+  if (currentView === 'unit_demands') {
+    contentHtml = `
+      ${headerHtml}
+      <div class="dashboard-card" style="margin-bottom: 0; padding: 0; border: none; background: transparent; box-shadow: none;">
+        <h5 style="margin-top: 0; margin-bottom: 10px; color: var(--primary); font-weight: 600;">${t("pol_log_title")}</h5>
+        <div class="dashboard-table-container" style="max-height: 350px; overflow-y: auto; border: 1px solid var(--accent-border); border-radius: 8px;">
+          <table class="dashboard-table" style="width: 100%; font-size:11px;">
+            <thead>
+              <tr style="height:36px;">
+                <th style="padding: 0 4px; text-align:center; width: 5%;"><span class="cell-text-wrapper">${t("th_ser")}</span></th>
+                <th style="padding: 0 6px; text-align:center; width: 16%;"><span class="cell-text-wrapper">${t("th_ser") === 'Ser' ? 'Bde/Unit' : 'ব্রিগেড/ইউনিট'}</span></th>
+                <th style="padding: 0 6px; text-align:center; width: 10%;"><span class="cell-text-wrapper">${t("lbl_pol_grade")}</span></th>
+                <th style="padding: 0 6px; text-align:center; width: 12%;"><span class="cell-text-wrapper">${t("th_avg_exp_monthly")}</span></th>
+                <th style="padding: 0 6px; text-align:center; width: 10%;"><span class="cell-text-wrapper">${t("th_bal")}</span></th>
+                <th style="padding: 0 6px; text-align:center; width: 13%;"><span class="cell-text-wrapper">${t("th_days_last")}</span></th>
+                <th style="padding: 0 6px; text-align:center; width: 10%;"><span class="cell-text-wrapper">${t("th_dmd_qty")}</span></th>
+                <th style="padding: 0 6px; text-align:center; width: 10%;"><span class="cell-text-wrapper">${t("th_view_ref_ltr")}</span></th>
+                <th style="padding: 0 6px; text-align:center; width: 11%;"><span class="cell-text-wrapper">${t("th_bal_aq_br")}</span></th>
+                <th style="padding: 0 6px; text-align:center; width: 18%;"><span class="cell-text-wrapper">${t("th_alt_qty")}</span></th>
+              </tr>
+            </thead>
+            <tbody id="pol-demands-log-body">
+              <tr>
+                <td colspan="10" style="text-align: center; color: var(--text-muted);">Loading...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    `;
+  } else {
+    const gradeOptions = `
+      <option value="Diesel">Diesel / ডিজেল</option>
+      <option value="MS-74">MS-74 / এমএস-৭৪</option>
+      <option value="100 Octane">100 Octane / ১০০ অকটেন</option>
+    `;
+    
+    contentHtml = `
+      ${headerHtml}
+      
+      <div style="border: 1px solid var(--accent-border); padding: 12px; border-radius: 8px; background: rgba(255,255,255,0.4); margin-bottom: 20px;">
+        <h5 style="margin-top: 0; margin-bottom: 8px; color: var(--primary); font-weight: 600;">${isBn ? "নতুন চাহিদা তৈরি করুন" : "Create New Demand"}</h5>
+        
+        <div class="dashboard-table-container" style="overflow-x: auto; border: 1px solid rgba(0,0,0,0.05); margin-bottom: 12px;">
+          <table class="dashboard-table" style="width: 100%; min-width: 600px; font-size:11px; margin-bottom:0;">
+            <thead>
+              <tr style="height:30px;">
+                <th style="text-align:center; padding: 4px; width: 18%;">${t("lbl_pol_grade")}</th>
+                <th style="text-align:center; padding: 4px; width: 18%;">${t("th_avg_exp_monthly")}</th>
+                <th style="text-align:center; padding: 4px; width: 15%;">${t("th_bal")}</th>
+                <th style="text-align:center; padding: 4px; width: 18%;">${t("th_days_last")}</th>
+                <th style="text-align:center; padding: 4px; width: 15%;">${t("th_dmd_qty")}</th>
+                <th style="text-align:center; padding: 4px; width: 16%;">${t("th_att_ref_ltr")}</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td style="padding: 4px; text-align: center;">
+                  <select id="pol-modal-grade" class="mini-dropdown" style="width: 100%;" onchange="updateLiveMetrics()">
+                    ${gradeOptions}
+                  </select>
+                </td>
+                <td style="padding: 4px; text-align: center;">
+                  <span id="pol-dmd-avg-exp" style="font-weight:600;">Loading...</span>
+                </td>
+                <td style="padding: 4px; text-align: center;">
+                  <span id="pol-dmd-bal" style="font-weight:600;">Loading...</span>
+                </td>
+                <td style="padding: 4px; text-align: center;">
+                  <span id="pol-dmd-days-last" style="font-weight:600;">Loading...</span>
+                </td>
+                <td style="padding: 4px; text-align: center;">
+                  <input type="number" id="pol-modal-amount" class="form-input" style="width: 100%; height:26px; font-size:11px; margin:0; padding:2px 6px;" placeholder="Liters" required min="1">
+                </td>
+                <td style="padding: 4px; text-align: center;">
+                  <input type="file" id="pol-modal-file" style="display: none;" accept=".pdf,.png,.jpg,.jpeg" onchange="handleRefLetterFileChange()" />
+                  <button class="btn-toggle" style="padding: 4px 8px; font-size:10px; width:100%;" onclick="document.getElementById('pol-modal-file').click()">
+                    <span style="margin-right: 4px;">📎</span>${t("th_att_ref_ltr") === 'Att Ref Ltr' ? 'Attach' : 'সংযুক্ত'}
+                  </button>
+                  <div id="pol-file-selected-name" style="font-size:9px; color:var(--success); margin-top:2px; word-break:break-all;"></div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        
+        <div style="display:flex; justify-content:flex-end;">
+          <button class="pol-action-btn btn-dmd" style="height:32px; width:auto; padding: 0 16px; font-size:11px; display:flex; align-items:center; justify-content:center;" onclick="submitDemandFromForm()">
+            ${isBn ? "জ্বালানি চাহিদা পাঠান" : "Submit Demand"}
+          </button>
+        </div>
+      </div>
+      
+      <div class="dashboard-card" style="margin-bottom: 0; padding: 0; border: none; background: transparent; box-shadow: none;">
+        <h5 style="margin-top: 0; margin-bottom: 10px; color: var(--primary); font-weight: 600;">${t("pol_log_title")}</h5>
+        <div class="dashboard-table-container" style="max-height: 250px; overflow-y: auto; border: 1px solid var(--accent-border); border-radius: 8px;">
+          <table class="dashboard-table" style="width: 100%; font-size:11px;">
+            <thead>
+              <tr style="height:36px;">
+                <th style="padding: 0 6px; text-align:center; width: 18%;"><span class="cell-text-wrapper">${t("lbl_pol_grade")}</span></th>
+                <th style="padding: 0 6px; text-align:center; width: 18%;"><span class="cell-text-wrapper">${t("th_avg_exp_monthly")}</span></th>
+                <th style="padding: 0 6px; text-align:center; width: 14%;"><span class="cell-text-wrapper">${t("th_bal")}</span></th>
+                <th style="padding: 0 6px; text-align:center; width: 18%;"><span class="cell-text-wrapper">${t("th_days_last")}</span></th>
+                <th style="padding: 0 6px; text-align:center; width: 14%;"><span class="cell-text-wrapper">${t("th_dmd_qty")}</span></th>
+                <th style="padding: 0 6px; text-align:center; width: 12%;"><span class="cell-text-wrapper">${t("th_view_ref_ltr")}</span></th>
+                <th style="padding: 0 6px; text-align:center; width: 10%;"><span class="cell-text-wrapper">${t("lbl_status")}</span></th>
+              </tr>
+            </thead>
+            <tbody id="pol-demands-log-body">
+              <tr>
+                <td colspan="7" style="text-align: center; color: var(--text-muted);">Loading...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    `;
+  }
+  
+  fieldsContainer.innerHTML = contentHtml;
+  fetchPolDemandsLog();
+  
+  if (currentView !== 'unit_demands') {
+    updateLiveMetrics();
+  }
+}
+window.renderDmdModalContent = renderDmdModalContent;
+
+export async function fetchPolDemandsLog() {
+  const logBody = document.getElementById("pol-demands-log-body");
+  if (!logBody) return;
+  
+  const role = state.currentUser ? state.currentUser.role : 6;
+  const assigned = state.currentUser ? state.currentUser.assigned : "";
+  const isBn = state.language === "bn";
+  const t = (key) => TRANSLATIONS[state.language][key] || key;
+  
+  try {
+    const url = `/api/pol/demands?role=${role}&assigned=${encodeURIComponent(assigned)}`;
+    const res = await fetch(url);
+    const data = await res.json();
+    
+    logBody.innerHTML = "";
+    
+    const currentView = state.dashboard.dmdActiveView;
+    let filteredData = [];
+    
+    if (currentView === 'unit_demands') {
+      filteredData = data.filter(r => r.unitName !== assigned);
+      filteredData.sort((a, b) => a.daysLast - b.daysLast);
+    } else {
+      filteredData = data.filter(r => r.unitName === assigned);
+    }
+    
+    if (filteredData.length === 0) {
+      const colspan = currentView === 'unit_demands' ? 10 : 7;
+      logBody.innerHTML = `
+        <tr>
+          <td colspan="${colspan}" style="text-align: center; color: var(--text-muted);">${isBn ? "কোনো চাহিদা পাওয়া যায়নি।" : "No demands found."}</td>
+        </tr>
+      `;
+      return;
+    }
+    
+    filteredData.forEach((r, idx) => {
+      const tr = document.createElement("tr");
+      const serNo = isBn ? convertDigitsToBengali(idx + 1) + "." : (idx + 1) + ".";
+      const gradeLabel = r.polGrade === "Diesel" ? (isBn ? "ডিজেল" : "Diesel") : (r.polGrade === "MS-74" ? (isBn ? "এমএস-৭৪" : "MS-74") : (isBn ? "১০০ অকটেন" : "100 Octane"));
+      
+      const avgExpVal = formatDisplayNumber(r.avgExp);
+      const balVal = formatDisplayNumber(r.bal);
+      
+      const daysVal = isBn ? convertDigitsToBengali(r.daysLast) : r.daysLast;
+      const daysLabel = `${daysVal} ${isBn ? 'দিন' : 'Day'}`;
+      
+      const amountVal = formatDisplayNumber(r.amount);
+      const aqBalVal = formatDisplayNumber(r.aqBal);
+      
+      let refLtrHtml = "-";
+      if (r.refLetter) {
+        refLtrHtml = `<a href="/uploads/${r.refLetter}" target="_blank" style="color: #4b7fcc; font-weight:700; text-decoration: none; cursor: pointer; display: inline-flex; align-items: center; gap: 4px;">📄 <span style="text-decoration: underline;">${isBn ? 'চিঠি' : 'Letter'}</span></a>`;
+      }
+      
+      if (currentView === 'unit_demands') {
+        let altActionHtml = "";
+        if (r.status === 'Pending') {
+          altActionHtml = `
+            <div style="display: flex; gap: 6px; align-items: center; justify-content: center; width: 100%;">
+              <input type="number" class="form-input alt-qty-input" data-demand-id="${r.id}" style="width: 80px; height: 26px; padding: 2px 6px; font-size: 11px; margin: 0;" placeholder="${isBn ? 'পরিমাণ' : 'Amount'}" min="1" />
+              <button class="btn-toggle" style="padding: 4px 8px; font-size: 10px; background: var(--success); color: white;" onclick="allocateFromDemandRow(${r.id})">
+                ${isBn ? 'বরাদ্দ' : 'Alt'}
+              </button>
+            </div>
+          `;
+        } else {
+          altActionHtml = `<span style="font-weight:700; color:#10b981;">${isBn ? 'অনুমোদিত' : 'Approved'}</span>`;
+        }
+        
+        tr.innerHTML = `
+          <td style="padding: 6px 4px; text-align: center;"><span class="cell-text-wrapper">${serNo}</span></td>
+          <td style="padding: 6px; text-align: center;"><span class="cell-text-wrapper">${getDisplayNameForUnit(r.unitName)}</span></td>
+          <td style="padding: 6px; text-align: center;"><span class="cell-text-wrapper">${gradeLabel}</span></td>
+          <td style="padding: 6px; text-align: right;"><span class="cell-text-wrapper">${avgExpVal}</span></td>
+          <td style="padding: 6px; text-align: right;"><span class="cell-text-wrapper">${balVal}</span></td>
+          <td style="padding: 6px; text-align: center;"><span class="cell-text-wrapper" style="font-weight:600; color: ${r.daysLast <= 7 ? '#ef4444' : 'inherit'};">${daysLabel}</span></td>
+          <td style="padding: 6px; text-align: right;"><span class="cell-text-wrapper" style="font-weight:600;">${amountVal}</span></td>
+          <td style="padding: 6px; text-align: center;"><span class="cell-text-wrapper">${refLtrHtml}</span></td>
+          <td style="padding: 6px; text-align: right;"><span class="cell-text-wrapper">${aqBalVal}</span></td>
+          <td style="padding: 6px; text-align: center;"><span class="cell-text-wrapper" style="width: 100%;">${altActionHtml}</span></td>
+        `;
+      } else {
+        const statusLabel = r.status === 'Pending' ? (isBn ? "পেন্ডিং" : "Pending") : (isBn ? "অনুমোদিত" : "Approved");
+        
+        tr.innerHTML = `
+          <td style="padding: 6px; text-align: center;"><span class="cell-text-wrapper">${gradeLabel}</span></td>
+          <td style="padding: 6px; text-align: right;"><span class="cell-text-wrapper">${avgExpVal}</span></td>
+          <td style="padding: 6px; text-align: right;"><span class="cell-text-wrapper">${balVal}</span></td>
+          <td style="padding: 6px; text-align: center;"><span class="cell-text-wrapper" style="font-weight:600;">${daysLabel}</span></td>
+          <td style="padding: 6px; text-align: right;"><span class="cell-text-wrapper" style="font-weight:600;">${amountVal}</span></td>
+          <td style="padding: 6px; text-align: center;"><span class="cell-text-wrapper">${refLtrHtml}</span></td>
+          <td style="padding: 6px; text-align: center;">
+            <span class="cell-text-wrapper" style="font-weight:700; color:${r.status === 'Pending' ? '#eab308' : '#10b981'};">${statusLabel}</span>
+          </td>
+        `;
+      }
+      
+      logBody.appendChild(tr);
+    });
+  } catch (err) {
+    console.error("Failed to load POL demands log data:", err);
+  }
+}
+window.fetchPolDemandsLog = fetchPolDemandsLog;
+
 export function openPolModal(action) {
   const modal = document.getElementById("pol-management-modal");
   const titleEl = document.getElementById("pol-modal-title");
@@ -1652,20 +2080,18 @@ export function openPolModal(action) {
     <option value="100 Octane">100 Octane / ১০০ অকটেন</option>
   `;
 
-  // Set modal width based on action
   const modalCard = modal.querySelector(".modal-card");
   if (modalCard) {
     if (action === "DMD") {
-      modalCard.style.maxWidth = "750px";
+      modalCard.style.maxWidth = "950px";
     } else {
       modalCard.style.maxWidth = "500px";
     }
   }
 
-  // Adjust modal submit and cancel buttons
   const submitBtn = document.getElementById("pol-modal-submit-btn");
   if (submitBtn) {
-    if (action === "DMD" && [5, 6].includes(Number(role))) {
+    if (action === "DMD") {
       submitBtn.style.display = "none";
     } else {
       submitBtn.style.display = "block";
@@ -1674,67 +2100,22 @@ export function openPolModal(action) {
 
   const cancelBtn = document.getElementById("pol-modal-cancel-btn");
   if (cancelBtn) {
-    cancelBtn.innerText = action === "DMD" && [5, 6].includes(Number(role)) ? (isBn ? "বন্ধ করুন" : "Close") : (isBn ? "বাতিল" : "Cancel");
+    cancelBtn.innerText = action === "DMD" ? (isBn ? "বন্ধ করুন" : "Close") : (isBn ? "বাতিল" : "Cancel");
   }
   
   if (action === "DMD") {
     titleEl.innerText = isBn ? "জ্বালানি চাহিদা ও লগ" : "Fuel Demands & Log";
     descEl.innerText = isBn ? "জ্বালানি চাহিদার তালিকা এবং নতুন চাহিদা সাবমিট প্যানেল" : "View fuel demands and submit new demand request.";
     
-    let formHtml = "";
-    if (![5, 6].includes(Number(role))) {
-      formHtml = `
-        <div style="border: 1px solid var(--accent-border); padding: 16px; border-radius: 8px; background: rgba(255,255,255,0.4); margin-bottom: 20px;">
-          <h5 style="margin-top: 0; margin-bottom: 12px; color: var(--primary); font-weight: 600;">${isBn ? "নতুন চাহিদা তৈরি করুন" : "Create New Demand"}</h5>
-          <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; align-items: flex-end;">
-            <div class="floating-label-group" style="margin-bottom:0;">
-              <label style="position:static; font-size:11px; font-weight:600; color:var(--primary); margin-bottom:4px; display:block;">${t("lbl_pol_grade")}</label>
-              <select id="pol-modal-grade" class="form-input" style="padding-top: 8px; height: 38px;">
-                ${gradeOptions}
-              </select>
-            </div>
-            <div class="floating-label-group" style="margin-bottom:0;">
-              <label style="position:static; font-size:11px; font-weight:600; color:var(--primary); margin-bottom:4px; display:block;">${t("lbl_month")}</label>
-              <select id="pol-modal-month" class="form-input" style="padding-top: 8px; height: 38px;">
-                ${monthsOptions}
-              </select>
-            </div>
-            <div class="floating-label-group" style="margin-bottom:0;">
-              <input type="number" id="pol-modal-amount" class="form-input" placeholder=" " required min="1" style="height: 38px;">
-              <label for="pol-modal-amount" style="top: 25px;">${t("lbl_amount")}</label>
-            </div>
-          </div>
-        </div>
-      `;
+    if ([3, 4].includes(Number(role))) {
+      state.dashboard.dmdActiveView = 'unit_demands';
+    } else if ([5, 6].includes(Number(role))) {
+      state.dashboard.dmdActiveView = 'unit_demands';
+    } else {
+      state.dashboard.dmdActiveView = 'bde_hq_demands';
     }
     
-    fieldsContainer.innerHTML = `
-      ${formHtml}
-      
-      <div class="dashboard-card" style="margin-bottom: 0; padding: 0; border: none; background: transparent; box-shadow: none;">
-        <h5 style="margin-top: 0; margin-bottom: 10px; color: var(--primary); font-weight: 600;">${t("pol_log_title")}</h5>
-        <div class="dashboard-table-container" style="max-height: 250px; overflow-y: auto; border: 1px solid var(--accent-border); border-radius: 8px;">
-          <table class="dashboard-table" style="width: 100%;">
-            <thead>
-              <tr>
-                <th><span class="cell-text-wrapper">${t("th_unit")}</span></th>
-                <th><span class="cell-text-wrapper">${t("lbl_pol_grade")}</span></th>
-                <th><span class="cell-text-wrapper">${t("lbl_month")}</span></th>
-                <th><span class="cell-text-wrapper">${t("lbl_amount")}</span></th>
-                <th><span class="cell-text-wrapper">${t("lbl_status")}</span></th>
-              </tr>
-            </thead>
-            <tbody id="pol-demands-log-body">
-              <tr>
-                <td colspan="5" style="text-align: center; color: var(--text-muted);">Loading...</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-    `;
-    
-    fetchPolDemandsLog();
+    renderDmdModalContent(fieldsContainer);
   } 
   else if (action === "ALT") {
     titleEl.innerText = t("label_allocate");

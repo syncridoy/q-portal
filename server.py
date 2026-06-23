@@ -1,10 +1,15 @@
 import sqlite3
 import os
 import random
+import uuid
 from flask import Flask, jsonify, request, send_from_directory
 
 app = Flask(__name__)
 DB_FILE = 'database.db'
+UPLOAD_FOLDER = 'uploads'
+if not os.path.exists(UPLOAD_FOLDER):
+    os.makedirs(UPLOAD_FOLDER)
+
 
 BRIGADES = {
   "HQ 55 Arty Bde": ["Rawshan Ara Regt Arty", "8 Fd Regt Arty", "27 Fd Regt Arty", "Adhoc Med Bty"],
@@ -181,6 +186,11 @@ def init_db():
         )
     ''')
     
+    try:
+        cursor.execute("ALTER TABLE pol_demands ADD COLUMN ref_letter TEXT")
+    except sqlite3.OperationalError:
+        pass # Already exists
+        
     conn.commit()
     
     # Seed users if empty
@@ -835,6 +845,65 @@ def get_pol_state():
     conn.close()
     return jsonify(result)
 
+@app.route('/uploads/<path:filename>')
+def serve_uploads(filename):
+    return send_from_directory(UPLOAD_FOLDER, filename)
+
+@app.route('/api/pol/upload_ref', methods=['POST'])
+def upload_ref_letter():
+    if 'file' not in request.files:
+        return jsonify({"success": False, "error": "No file part"}), 400
+    file = request.files['file']
+    if file.filename == '':
+        return jsonify({"success": False, "error": "No selected file"}), 400
+    if file:
+        ext = os.path.splitext(file.filename)[1].lower()
+        if ext in ['.pdf', '.png', '.jpg', '.jpeg']:
+            filename = f"{uuid.uuid4()}{ext}"
+            filepath = os.path.join(UPLOAD_FOLDER, filename)
+            file.save(filepath)
+            return jsonify({"success": True, "filename": filename})
+        else:
+            return jsonify({"success": False, "error": "Invalid file type. Only PDF, PNG, JPEG allowed."}), 400
+
+@app.route('/api/pol/unit_metrics', methods=['GET'])
+def get_pol_unit_metrics():
+    unit_name = request.args.get("unitName")
+    pol_grade = request.args.get("polGrade")
+    fiscal_year = request.args.get("fiscalYear", "2025-26")
+    
+    conn = get_db()
+    cursor = conn.cursor()
+    
+    # Calculate monthly average and balance
+    cursor.execute('''
+        SELECT SUM(allocation), SUM(expenditure), COUNT(month) 
+        FROM pol_monthly_records 
+        WHERE unit_name = ? AND pol_grade = ? AND fiscal_year = ?
+    ''', (unit_name, pol_grade, fiscal_year))
+    stats_row = cursor.fetchone()
+    
+    total_alloc = stats_row[0] or 0.0
+    total_exp = stats_row[1] or 0.0
+    months_count = stats_row[2] or 12
+    if months_count == 0:
+        months_count = 12
+        
+    avg_exp = total_exp / months_count
+    bal = total_alloc - total_exp
+    
+    if avg_exp > 0:
+        days_last = int(round((bal * 30.0) / avg_exp))
+    else:
+        days_last = 0
+        
+    conn.close()
+    return jsonify({
+        "avgExp": avg_exp,
+        "bal": bal,
+        "daysLast": days_last
+    })
+
 @app.route('/api/pol/demand', methods=['POST'])
 def add_pol_demand():
     data = request.json
@@ -843,6 +912,7 @@ def add_pol_demand():
     fiscal_year = data.get("fiscalYear", "2025-26")
     pol_grade = data.get("polGrade")
     amount = float(data.get("amount", 0))
+    ref_letter = data.get("refLetter", "")
     
     conn = get_db()
     cursor = conn.cursor()
@@ -855,14 +925,14 @@ def add_pol_demand():
     
     if row:
         cursor.execute('''
-            UPDATE pol_demands SET amount = ?, status = 'Pending'
+            UPDATE pol_demands SET amount = ?, ref_letter = ?, status = 'Pending'
             WHERE id = ?
-        ''', (amount, row[0]))
+        ''', (amount, ref_letter, row[0]))
     else:
         cursor.execute('''
-            INSERT INTO pol_demands (unit_name, fiscal_year, month, pol_grade, amount, status)
-            VALUES (?, ?, ?, ?, ?, 'Pending')
-        ''', (unit_name, fiscal_year, month, pol_grade, amount))
+            INSERT INTO pol_demands (unit_name, fiscal_year, month, pol_grade, amount, ref_letter, status)
+            VALUES (?, ?, ?, ?, ?, ?, 'Pending')
+        ''', (unit_name, fiscal_year, month, pol_grade, amount, ref_letter))
         
     conn.commit()
     conn.close()
@@ -892,10 +962,44 @@ def get_pol_demands():
         cursor.execute('SELECT * FROM pol_demands ORDER BY id DESC')
         
     rows = cursor.fetchall()
-    conn.close()
     
     demands = []
     for r in rows:
+        unit_name = r["unit_name"]
+        pol_grade = r["pol_grade"]
+        fiscal_year = r["fiscal_year"]
+        
+        # Calculate monthly average and balance for target unit
+        cursor.execute('''
+            SELECT SUM(allocation), SUM(expenditure), COUNT(month) 
+            FROM pol_monthly_records 
+            WHERE unit_name = ? AND pol_grade = ? AND fiscal_year = ?
+        ''', (unit_name, pol_grade, fiscal_year))
+        stats_row = cursor.fetchone()
+        
+        total_alloc = stats_row[0] or 0.0
+        total_exp = stats_row[1] or 0.0
+        months_count = stats_row[2] or 12
+        if months_count == 0:
+            months_count = 12
+            
+        avg_exp = total_exp / months_count
+        bal = total_alloc - total_exp
+        
+        if avg_exp > 0:
+            days_last = int(round((bal * 30.0) / avg_exp))
+        else:
+            days_last = 0
+            
+        # Calculate AQ Branch (Division HQ) balance
+        cursor.execute('''
+            SELECT SUM(allocation) - SUM(expenditure) 
+            FROM pol_monthly_records 
+            WHERE unit_name = 'HQ 55 Inf Div' AND pol_grade = ? AND fiscal_year = ?
+        ''', (pol_grade, fiscal_year))
+        aq_row = cursor.fetchone()
+        aq_bal = aq_row[0] if aq_row and aq_row[0] is not None else 0.0
+        
         demands.append({
             "id": r["id"],
             "unitName": r["unit_name"],
@@ -903,9 +1007,87 @@ def get_pol_demands():
             "month": r["month"],
             "polGrade": r["pol_grade"],
             "amount": r["amount"],
-            "status": r["status"]
+            "status": r["status"],
+            "refLetter": r["ref_letter"] or "",
+            "avgExp": avg_exp,
+            "bal": bal,
+            "daysLast": days_last,
+            "aqBal": aq_bal
         })
+        
+    conn.close()
     return jsonify(demands)
+
+@app.route('/api/pol/allocate_demand', methods=['POST'])
+def allocate_pol_demand():
+    data = request.json
+    demand_id = int(data.get("demandId"))
+    amount = float(data.get("amount", 0))
+    from_entity = data.get("fromEntity")
+    
+    conn = get_db()
+    cursor = conn.cursor()
+    
+    # Fetch demand
+    cursor.execute("SELECT * FROM pol_demands WHERE id = ?", (demand_id,))
+    demand = cursor.fetchone()
+    if not demand:
+        conn.close()
+        return jsonify({"success": False, "error": "Demand not found"}), 404
+        
+    to_entity = demand["unit_name"]
+    month = demand["month"]
+    fiscal_year = demand["fiscal_year"]
+    pol_grade = demand["pol_grade"]
+    
+    # 1. Update pol_monthly_records for target unit (to_entity)
+    cursor.execute('''
+        SELECT id, allocation FROM pol_monthly_records 
+        WHERE unit_name = ? AND fiscal_year = ? AND month = ? AND pol_grade = ?
+    ''', (to_entity, fiscal_year, month, pol_grade))
+    row = cursor.fetchone()
+    if row:
+        current_alloc = row[1] or 0.0
+        cursor.execute('''
+            UPDATE pol_monthly_records SET allocation = ? 
+            WHERE id = ?
+        ''', (current_alloc + amount, row[0]))
+    else:
+        cursor.execute('''
+            INSERT INTO pol_monthly_records (unit_name, fiscal_year, month, pol_grade, allocation, expenditure)
+            VALUES (?, ?, ?, ?, ?, 0.0)
+        ''', (to_entity, fiscal_year, month, pol_grade, amount))
+        
+    # 2. Update logistics.pol for target unit
+    cursor.execute("SELECT pol FROM logistics WHERE unit_name = ?", (to_entity,))
+    target_row = cursor.fetchone()
+    if target_row:
+        cursor.execute('''
+            UPDATE logistics SET pol = ? WHERE unit_name = ?
+        ''', (target_row[0] + int(amount), to_entity))
+    else:
+        cursor.execute('''
+            INSERT INTO logistics (unit_name, vAvail, vTotal, pol, cook, waiter, strength)
+            VALUES (?, 0, 0, ?, 0, 0, 0)
+        ''', (to_entity, int(amount)))
+        
+    # 3. Deduct from source unit (from_entity) if it's not 'Area HQ'
+    if from_entity != 'Area HQ':
+        cursor.execute("SELECT pol FROM logistics WHERE unit_name = ?", (from_entity,))
+        source_row = cursor.fetchone()
+        if source_row:
+            cursor.execute('''
+                UPDATE logistics SET pol = ? WHERE unit_name = ?
+            ''', (max(0, source_row[0] - int(amount)), from_entity))
+            
+    # 4. Update demand status to 'Approved'
+    cursor.execute('''
+        UPDATE pol_demands SET status = 'Approved' WHERE id = ?
+    ''', (demand_id,))
+    
+    conn.commit()
+    conn.close()
+    return jsonify({"success": True})
 
 @app.route('/api/pol/allocate', methods=['POST'])
 def allocate_pol():
