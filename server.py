@@ -28,13 +28,13 @@ IMMUTABLE_USER_REGISTRY = [
   { "username": "aq_55_inf_div", "assigned": "HQ 55 Inf Div", "role": 6, "appointment": "AAQMG", "access": "Viewer" },
   { "username": "dq_55_inf_div", "assigned": "HQ 55 Inf Div", "role": 6, "appointment": "DAQMG", "access": "Viewer" },
   { "username": "hq_55_inf_div", "assigned": "HQ 55 Inf Div", "role": 5, "appointment": "Q Clk", "access": "Editor" },
-  { "username": "dq_55_arty_bde", "assigned": "HQ 55 Arty Bde", "role": 4, "appointment": "DAQMG", "access": "Viewer" },
+  { "username": "dq_hq_55_arty_bde", "assigned": "HQ 55 Arty Bde", "role": 4, "appointment": "DAQMG", "access": "Viewer" },
   { "username": "hq_55_arty_bde", "assigned": "HQ 55 Arty Bde", "role": 3, "appointment": "Q Clk", "access": "Editor" },
-  { "username": "dq_21_inf_bde", "assigned": "HQ 21 Inf Bde", "role": 4, "appointment": "DAQMG", "access": "Viewer" },
+  { "username": "dq_hq_21_inf_bde", "assigned": "HQ 21 Inf Bde", "role": 4, "appointment": "DAQMG", "access": "Viewer" },
   { "username": "hq_21_inf_bde", "assigned": "HQ 21 Inf Bde", "role": 3, "appointment": "Q Clk", "access": "Editor" },
-  { "username": "dq_88_inf_bde", "assigned": "HQ 88 Inf Bde", "role": 4, "appointment": "DAQMG", "access": "Viewer" },
+  { "username": "dq_hq_88_inf_bde", "assigned": "HQ 88 Inf Bde", "role": 4, "appointment": "DAQMG", "access": "Viewer" },
   { "username": "hq_88_inf_bde", "assigned": "HQ 88 Inf Bde", "role": 3, "appointment": "Q Clk", "access": "Editor" },
-  { "username": "dq_105_inf_bde", "assigned": "HQ 105 Inf Bde", "role": 4, "appointment": "DAQMG", "access": "Viewer" },
+  { "username": "dq_hq_105_inf_bde", "assigned": "HQ 105 Inf Bde", "role": 4, "appointment": "DAQMG", "access": "Viewer" },
   { "username": "hq_105_inf_bde", "assigned": "HQ 105 Inf Bde", "role": 3, "appointment": "Q Clk", "access": "Editor" },
   { "username": "qm_rawshan_ara_regt", "assigned": "Rawshan Ara Regt Artly", "role": 2, "appointment": "QM", "access": "Viewer" },
   { "username": "rawshan_ara_regt", "assigned": "Rawshan Ara Regt Arty", "role": 1, "appointment": "Q Clk", "access": "Editor" },
@@ -89,6 +89,10 @@ IMMUTABLE_USER_REGISTRY = [
 ]
 
 INITIAL_LOGISTICS = {
+  "HQ 55 Arty Bde": { "vAvail": 4, "vTotal": 6, "pol": 2000, "cook": 2, "waiter": 4, "strength": 80 },
+  "HQ 21 Inf Bde": { "vAvail": 4, "vTotal": 6, "pol": 2200, "cook": 2, "waiter": 4, "strength": 85 },
+  "HQ 88 Inf Bde": { "vAvail": 5, "vTotal": 7, "pol": 2100, "cook": 2, "waiter": 4, "strength": 90 },
+  "HQ 105 Inf Bde": { "vAvail": 4, "vTotal": 6, "pol": 2300, "cook": 2, "waiter": 4, "strength": 88 },
   "Rawshan Ara Regt Arty": { "vAvail": 8, "vTotal": 12, "pol": 4500, "cook": 4, "waiter": 8, "strength": 245 },
   "8 Fd Regt Arty": { "vAvail": 6, "vTotal": 8, "pol": 3200, "cook": 3, "waiter": 6, "strength": 180 },
   "27 Fd Regt Arty": { "vAvail": 9, "vTotal": 10, "pol": 4100, "cook": 4, "waiter": 7, "strength": 215 },
@@ -236,6 +240,37 @@ def init_db():
                     VALUES (?, ?, ?, ?, ?, ?)
                 ''', ('HQ 55 Inf Div', '2025-26', month, grade, 0.0, 0.0))
         conn.commit()
+
+    # Rename usernames for Brigade DQ users if they exist in the database
+    old_to_new_users = {
+        "dq_55_arty_bde": "dq_hq_55_arty_bde",
+        "dq_21_inf_bde": "dq_hq_21_inf_bde",
+        "dq_88_inf_bde": "dq_hq_88_inf_bde",
+        "dq_105_inf_bde": "dq_hq_105_inf_bde"
+    }
+    for old_u, new_u in old_to_new_users.items():
+        cursor.execute("SELECT count(*) FROM users WHERE username = ?", (old_u,))
+        if cursor.fetchone()[0] > 0:
+            cursor.execute("SELECT count(*) FROM users WHERE username = ?", (new_u,))
+            if cursor.fetchone()[0] == 0:
+                cursor.execute("UPDATE users SET username = ? WHERE username = ?", (new_u, old_u))
+                
+    # Patch database: check if brigade HQs are in logistics
+    bde_logistics = {
+        "HQ 55 Arty Bde": { "vAvail": 4, "vTotal": 6, "pol": 2000, "cook": 2, "waiter": 4, "strength": 80 },
+        "HQ 21 Inf Bde": { "vAvail": 4, "vTotal": 6, "pol": 2200, "cook": 2, "waiter": 4, "strength": 85 },
+        "HQ 88 Inf Bde": { "vAvail": 5, "vTotal": 7, "pol": 2100, "cook": 2, "waiter": 4, "strength": 90 },
+        "HQ 105 Inf Bde": { "vAvail": 4, "vTotal": 6, "pol": 2300, "cook": 2, "waiter": 4, "strength": 88 }
+    }
+    for bde_name, data in bde_logistics.items():
+        cursor.execute("SELECT count(*) FROM logistics WHERE unit_name = ?", (bde_name,))
+        if cursor.fetchone()[0] == 0:
+            cursor.execute('''
+                INSERT INTO logistics (unit_name, vAvail, vTotal, pol, cook, waiter, strength)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
+            ''', (bde_name, data["vAvail"], data["vTotal"], data["pol"], data["cook"], data["waiter"], data["strength"]))
+            
+    conn.commit()
         
     conn.close()
 

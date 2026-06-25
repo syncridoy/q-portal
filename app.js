@@ -1,6 +1,6 @@
 // Q-PORTAL - ADMINISTRATIVE CORE APP SCRIPT (Modular ES Modules Entry Point)
 
-import { state, BRIGADES, ALL_UNITS_LIST, ROLE_TABS, getRoleCategory, toTitleCase, normalizeAppointment } from './state.js';
+import { state, BRIGADES, ALL_UNITS_LIST, ROLE_TABS, getRoleCategory, toTitleCase, normalizeAppointment, IMMUTABLE_USER_REGISTRY } from './state.js';
 import { TRANSLATIONS, t, setLanguage, convertDigitsToBengali, formatDisplayNumber } from './translations.js';
 import { initMainDashboardCharts } from './charts.js';
 import {
@@ -53,6 +53,44 @@ export async function initDatabases() {
   }
 }
 
+export function toggleBrigadeUserRole() {
+  if (!state.currentUser) return;
+  
+  state.currentUser.isUnitMode = !state.currentUser.isUnitMode;
+  
+  const baseUser = IMMUTABLE_USER_REGISTRY.find(u => u.username === state.currentUser.username);
+  const baseRole = baseUser ? baseUser.role : state.currentUser.role;
+  
+  if (state.currentUser.isUnitMode) {
+    state.currentUser.role = baseRole === 3 ? 1 : 2;
+    state.currentUser.roleName = baseRole === 3 ? "Unit Clerk" : "Unit QM / OC";
+  } else {
+    state.currentUser.role = baseRole;
+    state.currentUser.roleName = baseRole === 3 ? "Brigade Clerk" : "Brigade DAQMG";
+  }
+  
+  const isBn = state.language === "bn";
+  const newModeName = state.currentUser.isUnitMode 
+    ? "Bde HQ"
+    : state.currentUser.assigned;
+    
+  showToast(
+    isBn ? "রোল পরিবর্তন করা হয়েছে" : "Role Switched",
+    isBn ? `সফলভাবে ${newModeName} মোডে সুইচ করা হয়েছে।` : `Successfully switched to ${newModeName} mode.`,
+    "success"
+  );
+  
+  const category = getRoleCategory(state.currentUser.role);
+  if (!ROLE_TABS[category].includes(state.activeTabKey)) {
+    state.activeTabKey = ROLE_TABS[category][0];
+  }
+  
+  updateHeaderProfileInfo();
+  renderNavigationTabs();
+  renderPortalMainContent();
+}
+window.toggleBrigadeUserRole = toggleBrigadeUserRole;
+
 export function updateHeaderProfileInfo() {
   if (!state.currentUser) return;
 
@@ -91,6 +129,43 @@ export function updateHeaderProfileInfo() {
   // Normalize appointment to standard mixed-case/title-case format
   const apptEl = document.getElementById("header-user-appt");
   if (apptEl) apptEl.innerText = t(normalizeAppointment(state.currentUser.appointment));
+
+  // Dynamic switch role dropdown item for Brigade HQ users
+  const menu = document.getElementById("profile-dropdown-menu");
+  if (menu) {
+    let switchBtn = document.getElementById("dropdown-btn-switch-role");
+    const isBdeHQUser = ["HQ 55 Arty Bde", "HQ 21 Inf Bde", "HQ 88 Inf Bde", "HQ 105 Inf Bde"].includes(state.currentUser.assigned);
+    
+    if (isBdeHQUser) {
+      if (!switchBtn) {
+        switchBtn = document.createElement("div");
+        switchBtn.className = "profile-dropdown-item";
+        switchBtn.id = "dropdown-btn-switch-role";
+        const logoutBtn = document.getElementById("dropdown-btn-logout");
+        menu.insertBefore(switchBtn, logoutBtn);
+        
+        switchBtn.addEventListener("click", (e) => {
+          e.stopPropagation();
+          menu.classList.remove("open");
+          toggleBrigadeUserRole();
+        });
+      }
+      
+      const isBn = state.language === "bn";
+      const brandName = state.currentUser.assigned;
+      const isUnitMode = state.currentUser.isUnitMode;
+      
+      if (isUnitMode) {
+        switchBtn.innerText = isBn ? `${brandName} হিসেবে সুইচ` : `Switch as ${brandName}`;
+      } else {
+        switchBtn.innerText = isBn ? "Bde HQ হিসেবে সুইচ" : "Switch as Bde HQ";
+      }
+    } else {
+      if (switchBtn) {
+        switchBtn.remove();
+      }
+    }
+  }
 }
 
 export function initDashboard(preserveTab = false) {

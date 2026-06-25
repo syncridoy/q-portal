@@ -26,13 +26,13 @@ export const IMMUTABLE_USER_REGISTRY = [
   { "username": "hq_55_inf_div", "assigned": "HQ 55 Inf Div", "role": 5, "appointment": "Q Clk", "access": "Editor" },
 
   // === 2. Brigade Level ===
-  { "username": "dq_55_arty_bde", "assigned": "HQ 55 Arty Bde", "role": 4, "appointment": "DAQMG", "access": "Viewer" },
+  { "username": "dq_hq_55_arty_bde", "assigned": "HQ 55 Arty Bde", "role": 4, "appointment": "DAQMG", "access": "Viewer" },
   { "username": "hq_55_arty_bde", "assigned": "HQ 55 Arty Bde", "role": 3, "appointment": "Q Clk", "access": "Editor" },
-  { "username": "dq_21_inf_bde", "assigned": "HQ 21 Inf Bde", "role": 4, "appointment": "DAQMG", "access": "Viewer" },
+  { "username": "dq_hq_21_inf_bde", "assigned": "HQ 21 Inf Bde", "role": 4, "appointment": "DAQMG", "access": "Viewer" },
   { "username": "hq_21_inf_bde", "assigned": "HQ 21 Inf Bde", "role": 3, "appointment": "Q Clk", "access": "Editor" },
-  { "username": "dq_88_inf_bde", "assigned": "HQ 88 Inf Bde", "role": 4, "appointment": "DAQMG", "access": "Viewer" },
+  { "username": "dq_hq_88_inf_bde", "assigned": "HQ 88 Inf Bde", "role": 4, "appointment": "DAQMG", "access": "Viewer" },
   { "username": "hq_88_inf_bde", "assigned": "HQ 88 Inf Bde", "role": 3, "appointment": "Q Clk", "access": "Editor" },
-  { "username": "dq_105_inf_bde", "assigned": "HQ 105 Inf Bde", "role": 4, "appointment": "DAQMG", "access": "Viewer" },
+  { "username": "dq_hq_105_inf_bde", "assigned": "HQ 105 Inf Bde", "role": 4, "appointment": "DAQMG", "access": "Viewer" },
   { "username": "hq_105_inf_bde", "assigned": "HQ 105 Inf Bde", "role": 3, "appointment": "Q Clk", "access": "Editor" },
 
   // === 3. Unit Level ===
@@ -150,6 +150,10 @@ export const INITIAL_USERS = compileInitialUsers();
 
 // --- Initial Unit Logistics Values ---
 export const INITIAL_LOGISTICS = {
+  "HQ 55 Arty Bde": { vAvail: 4, vTotal: 6, pol: 2000, cook: 2, waiter: 4, strength: 80 },
+  "HQ 21 Inf Bde": { vAvail: 4, vTotal: 6, pol: 2200, cook: 2, waiter: 4, strength: 85 },
+  "HQ 88 Inf Bde": { vAvail: 5, vTotal: 7, pol: 2100, cook: 2, waiter: 4, strength: 90 },
+  "HQ 105 Inf Bde": { vAvail: 4, vTotal: 6, pol: 2300, cook: 2, waiter: 4, strength: 88 },
   // Arty Bde
   "Rawshan Ara Regt Arty": { vAvail: 8, vTotal: 12, pol: 4500, cook: 4, waiter: 8, strength: 245 },
   "8 Fd Regt Arty": { vAvail: 6, vTotal: 8, pol: 3200, cook: 3, waiter: 6, strength: 180 },

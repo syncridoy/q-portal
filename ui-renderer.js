@@ -35,6 +35,10 @@ export function getDisplayNameForUnit(unitName, year) {
     }
     
     const unitMap = {
+      "HQ 55 Arty Bde": "সদর দপ্তর ৫৫ আর্টিলারি ব্রিগেড",
+      "HQ 21 Inf Bde": "সদর দপ্তর ২১ পদাতিক ব্রিগেড",
+      "HQ 88 Inf Bde": "সদর দপ্তর ৮৮ পদাতিক ব্রিগেড",
+      "HQ 105 Inf Bde": "সদর দপ্তর ১০৫ পদাতিক ব্রিগেড",
       "Rawshan Ara Regt Arty": "রওশন আরা রেজিঃ আর্টিঃ",
       "8 Fd Regt Arty": "৮ ফিল্ড রেজিঃ আর্টিঃ",
       "27 Fd Regt Arty": "২৭ ফিল্ড  রেজিঃ আর্টিঃ",
